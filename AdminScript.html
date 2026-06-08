@@ -1,0 +1,160 @@
+<script>
+  const token = localStorage.getItem('admin_token');
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!token) {
+      window.location.href = "?page=login";
+      return;
+    }
+    
+    // Check if token is valid (this is implicitly checked when we fetch data)
+    loadData();
+  });
+
+  function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId + '-tab').classList.add('active');
+    
+    document.querySelectorAll('.nav-links a').forEach(el => el.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+  }
+
+  function logout() {
+    localStorage.removeItem('admin_token');
+    window.location.href = "?page=login";
+  }
+
+  function loadData() {
+    // Load Settings
+    google.script.run.withSuccessHandler(populateSettings).withFailureHandler(handleError).getSettings();
+    // Load Gallery
+    google.script.run.withSuccessHandler(populateGallery).getGallery();
+    // Load RSVP
+    google.script.run.withSuccessHandler(populateRSVP).getRSVPs(token);
+  }
+
+  function populateSettings(data) {
+    document.getElementById('BrideName').value = data.BrideName || '';
+    document.getElementById('GroomName').value = data.GroomName || '';
+    document.getElementById('Greeting').value = data.Greeting || '';
+    document.getElementById('AkadDate').value = data.AkadDate || '';
+    document.getElementById('ResepsiDate').value = data.ResepsiDate || '';
+    document.getElementById('MusicUrl').value = data.MusicUrl || '';
+    document.getElementById('MapsLink').value = data.MapsLink || '';
+    document.getElementById('MapImage').value = data.MapImage || '';
+    
+    // Hide loader
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('admin-layout').style.display = 'flex';
+  }
+
+  function saveSettings(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-save-settings');
+    btn.textContent = 'Menyimpan...';
+    btn.disabled = true;
+
+    const data = {
+      BrideName: document.getElementById('BrideName').value,
+      GroomName: document.getElementById('GroomName').value,
+      Greeting: document.getElementById('Greeting').value,
+      AkadDate: document.getElementById('AkadDate').value,
+      ResepsiDate: document.getElementById('ResepsiDate').value,
+      MusicUrl: document.getElementById('MusicUrl').value,
+      MapsLink: document.getElementById('MapsLink').value,
+      MapImage: document.getElementById('MapImage').value
+    };
+
+    google.script.run.withSuccessHandler((res) => {
+      alert('Pengaturan berhasil disimpan!');
+      btn.textContent = 'Simpan Pengaturan';
+      btn.disabled = false;
+    }).withFailureHandler(handleError).saveSettings(data, token);
+  }
+
+  function populateGallery(data) {
+    const tbody = document.getElementById('gallery-tbody');
+    tbody.innerHTML = '';
+    data.forEach(item => {
+      let preview = item.type === 'photo' 
+        ? `<img src="${item.url}" class="preview-img">`
+        : `<video src="${item.url}" class="preview-img"></video>`;
+        
+      tbody.innerHTML += `
+        <tr>
+          <td>${preview}</td>
+          <td>${item.type.toUpperCase()}</td>
+          <td style="word-break: break-all;">${item.url}</td>
+          <td>
+            <button class="btn-danger" onclick="deleteGalleryItem('${item.id}')">Hapus</button>
+          </td>
+        </tr>
+      `;
+    });
+  }
+
+  function addGallery(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-add-gallery');
+    btn.textContent = 'Loading...';
+    btn.disabled = true;
+
+    const item = {
+      type: document.getElementById('media-type').value,
+      url: document.getElementById('media-url').value
+    };
+
+    google.script.run.withSuccessHandler((res) => {
+      if(res.success) {
+        document.getElementById('add-gallery-form').reset();
+        loadData(); // reload gallery
+      }
+      btn.textContent = 'Tambahkan';
+      btn.disabled = false;
+    }).withFailureHandler(handleError).addGalleryItem(item, token);
+  }
+
+  function deleteGalleryItem(id) {
+    if(confirm('Yakin ingin menghapus media ini?')) {
+      google.script.run.withSuccessHandler((res) => {
+        if(res.success) loadData();
+      }).withFailureHandler(handleError).deleteGalleryItem(id, token);
+    }
+  }
+
+  function populateRSVP(data) {
+    const tbody = document.getElementById('rsvp-tbody');
+    tbody.innerHTML = '';
+    data.forEach(item => {
+      const date = new Date(item.timestamp).toLocaleString('id-ID');
+      tbody.innerHTML += `
+        <tr>
+          <td>${date}</td>
+          <td>${escapeHTML(item.name)}</td>
+          <td>${item.attendance}</td>
+          <td>${item.guests}</td>
+          <td>${escapeHTML(item.message)}</td>
+        </tr>
+      `;
+    });
+  }
+
+  function handleError(err) {
+    alert('Terjadi kesalahan atau sesi berakhir. Silakan login kembali.');
+    if(err.message === 'Unauthorized') {
+      logout();
+    }
+  }
+
+  function escapeHTML(str) {
+    return (str+'').replace(/[&<>'"]/g, 
+      tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag)
+    );
+  }
+</script>

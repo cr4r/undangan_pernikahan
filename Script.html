@@ -1,0 +1,188 @@
+<script>
+  let isPlaying = false;
+  let targetDate = new Date().getTime();
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Load data from Google Apps Script
+    google.script.run.withSuccessHandler(initPage).getPublicData();
+    document.getElementById('year').textContent = new Date().getFullYear();
+    
+    // RSVP Attendance Toggle
+    document.getElementById('rsvp-attendance').addEventListener('change', function() {
+      const guestsGroup = document.getElementById('guests-group');
+      if(this.value === 'Hadir') {
+        guestsGroup.style.display = 'block';
+      } else {
+        guestsGroup.style.display = 'none';
+      }
+    });
+  });
+
+  function initPage(data) {
+    const s = data.settings;
+    
+    // Populate Names
+    document.getElementById('bride-name-hero').textContent = s.BrideName;
+    document.getElementById('groom-name-hero').textContent = s.GroomName;
+    document.getElementById('bride-name').textContent = s.BrideName;
+    document.getElementById('groom-name').textContent = s.GroomName;
+    document.getElementById('footer-names').textContent = s.BrideName + ' & ' + s.GroomName;
+    
+    // Populate Dates
+    const akad = new Date(s.AkadDate);
+    const resepsi = new Date(s.ResepsiDate);
+    
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('hero-date').textContent = resepsi.toLocaleDateString('id-ID', options);
+    document.getElementById('akad-date').textContent = akad.toLocaleDateString('id-ID', options);
+    document.getElementById('akad-time').textContent = akad.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + ' WIB - Selesai';
+    document.getElementById('resepsi-date').textContent = resepsi.toLocaleDateString('id-ID', options);
+    document.getElementById('resepsi-time').textContent = resepsi.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + ' WIB - Selesai';
+    
+    targetDate = resepsi.getTime();
+    startCountdown();
+
+    document.getElementById('greeting-text').textContent = s.Greeting;
+    document.getElementById('maps-link').href = s.MapsLink;
+    
+    // Map Image
+    const mapContainer = document.getElementById('map-container');
+    if (s.MapImage && s.MapImage.trim() !== '') {
+      mapContainer.innerHTML = `<img src="${s.MapImage}" alt="Denah Lokasi">`;
+    } else {
+      mapContainer.innerHTML = `<p style="padding-top:100px;">Klik tombol di bawah untuk melihat peta</p>`;
+    }
+
+    // Audio
+    document.getElementById('bg-music').src = s.MusicUrl;
+
+    // Gallery
+    const galleryGrid = document.getElementById('gallery-grid');
+    if (data.gallery && data.gallery.length > 0) {
+      data.gallery.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'gallery-item';
+        if (item.type === 'photo') {
+          div.innerHTML = `<img src="${item.url}" alt="Gallery Image">`;
+        } else {
+          div.innerHTML = `<video src="${item.url}" controls></video>`;
+        }
+        galleryGrid.appendChild(div);
+      });
+    } else {
+      galleryGrid.innerHTML = '<p>Galeri belum tersedia.</p>';
+    }
+
+    // RSVPs
+    const wishesList = document.getElementById('wishes-list');
+    if (data.rsvps && data.rsvps.length > 0) {
+      data.rsvps.forEach(rsvp => {
+        const div = document.createElement('div');
+        div.className = 'wish-card';
+        div.innerHTML = `<h4>${escapeHTML(rsvp.name)}</h4><p>${escapeHTML(rsvp.message)}</p>`;
+        wishesList.appendChild(div);
+      });
+    } else {
+      wishesList.innerHTML = '<p>Belum ada ucapan.</p>';
+    }
+
+    // Hide loader
+    document.getElementById('loader').style.display = 'none';
+  }
+
+  function openInvitation() {
+    document.getElementById('home').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    window.scrollTo(0, 0);
+    
+    // Play music
+    const audio = document.getElementById('bg-music');
+    audio.play().then(() => {
+      isPlaying = true;
+      document.getElementById('audio-btn').innerHTML = '<i class="fas fa-pause"></i>';
+    }).catch(e => console.log('Autoplay prevented'));
+  }
+
+  function toggleAudio() {
+    const audio = document.getElementById('bg-music');
+    const btn = document.getElementById('audio-btn');
+    if (isPlaying) {
+      audio.pause();
+      btn.innerHTML = '<i class="fas fa-music"></i>';
+    } else {
+      audio.play();
+      btn.innerHTML = '<i class="fas fa-pause"></i>';
+    }
+    isPlaying = !isPlaying;
+  }
+
+  function startCountdown() {
+    setInterval(() => {
+      const now = new Date().getTime();
+      const distance = targetDate - now;
+
+      if (distance < 0) {
+        document.getElementById('days').textContent = '00';
+        document.getElementById('hours').textContent = '00';
+        document.getElementById('mins').textContent = '00';
+        document.getElementById('secs').textContent = '00';
+        return;
+      }
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      document.getElementById('days').textContent = days < 10 ? '0' + days : days;
+      document.getElementById('hours').textContent = hours < 10 ? '0' + hours : hours;
+      document.getElementById('mins').textContent = minutes < 10 ? '0' + minutes : minutes;
+      document.getElementById('secs').textContent = seconds < 10 ? '0' + seconds : seconds;
+    }, 1000);
+  }
+
+  function submitRSVP(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-submit-rsvp');
+    btn.textContent = 'Mengirim...';
+    btn.disabled = true;
+
+    const data = {
+      name: document.getElementById('rsvp-name').value,
+      attendance: document.getElementById('rsvp-attendance').value,
+      guests: document.getElementById('rsvp-attendance').value === 'Hadir' ? document.getElementById('rsvp-guests').value : '0',
+      message: document.getElementById('rsvp-message').value
+    };
+
+    google.script.run.withSuccessHandler((res) => {
+      if(res.success) {
+        alert('Terima kasih, RSVP dan ucapan Anda telah terkirim!');
+        
+        // Add to wishes list instantly
+        const wishesList = document.getElementById('wishes-list');
+        const div = document.createElement('div');
+        div.className = 'wish-card';
+        div.innerHTML = `<h4>${escapeHTML(data.name)}</h4><p>${escapeHTML(data.message)}</p>`;
+        wishesList.insertBefore(div, wishesList.firstChild);
+
+        document.getElementById('rsvp-form').reset();
+      } else {
+        alert('Terjadi kesalahan. Silakan coba lagi.');
+      }
+      btn.textContent = 'Kirim RSVP';
+      btn.disabled = false;
+    }).saveRSVP(data);
+  }
+
+  function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, 
+      tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag)
+    );
+  }
+</script>
