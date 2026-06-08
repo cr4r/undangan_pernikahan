@@ -17,6 +17,10 @@ function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
+function getScriptUrl() {
+  return ScriptApp.getService().getUrl();
+}
+
 function getDb() {
   var props = PropertiesService.getScriptProperties();
   var ssId = props.getProperty('SPREADSHEET_ID');
@@ -49,11 +53,14 @@ function setupDatabase(ss) {
   sheet1.appendRow(['MapsLink', 'https://maps.google.com']);
   sheet1.appendRow(['MapImage', '']);
   sheet1.appendRow(['Greeting', 'Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan resepsi pernikahan putra-putri kami.']);
+  sheet1.appendRow(['BrideDesc', 'Putri dari Bpk. Fulan & Ibu Fulanah']);
+  sheet1.appendRow(['GroomDesc', 'Putra dari Bpk. Fulan & Ibu Fulanah']);
+  sheet1.appendRow(['BankAccounts', JSON.stringify([{"bank": "BCA", "account": "1234567890", "name": "Putra / Putri"}])]);
   
   var gallery = ss.insertSheet('Gallery');
-  gallery.appendRow(['Id', 'Type', 'Url']);
-  gallery.appendRow(['1', 'photo', 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80']);
-  gallery.appendRow(['2', 'photo', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80']);
+  gallery.appendRow(['Id', 'Type', 'Url', 'Name']);
+  gallery.appendRow(['1', 'photo', 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80', 'Contoh Foto 1']);
+  gallery.appendRow(['2', 'photo', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80', 'Contoh Foto 2']);
   
   var rsvp = ss.insertSheet('RSVP');
   rsvp.appendRow(['Timestamp', 'Name', 'Attendance', 'Guests', 'Message']);
@@ -89,7 +96,11 @@ function getSettings() {
   var data = sheet.getDataRange().getValues();
   var settings = {};
   for (var i = 1; i < data.length; i++) {
-    settings[data[i][0]] = data[i][1];
+    var val = data[i][1];
+    if (val instanceof Date) {
+      val = Utilities.formatDate(val, Session.getScriptTimeZone(), "yyyy-MM-dd'T'HH:mm");
+    }
+    settings[data[i][0]] = val;
   }
   return settings;
 }
@@ -100,6 +111,10 @@ function saveSettings(settings, token) {
   var sheet = ss.getSheetByName('Settings');
   var data = sheet.getDataRange().getValues();
   
+  if (settings.MapImageBase64) {
+    settings.MapImage = uploadFileToDrive(settings.MapImageBase64, 'denah.png', settings.MapImageMime, 'Undangan Pernikahan');
+  }
+
   for (var i = 1; i < data.length; i++) {
     var key = data[i][0];
     if (settings.hasOwnProperty(key)) {
@@ -118,7 +133,8 @@ function getGallery() {
     gallery.push({
       id: data[i][0],
       type: data[i][1],
-      url: data[i][2]
+      url: data[i][2],
+      name: data[i][3] || ''
     });
   }
   return gallery;
@@ -126,10 +142,21 @@ function getGallery() {
 
 function addGalleryItem(item, token) {
   if (!verifyToken(token)) throw new Error('Unauthorized');
+  
+  if (item.base64Data) {
+    try {
+      var ext = item.mimeType.split('/')[1] || 'jpeg';
+      var filename = item.name + '.' + ext;
+      item.url = uploadFileToDrive(item.base64Data, filename, item.mimeType, 'Galeri', 'Undangan Pernikahan');
+    } catch(e) {
+      throw new Error('Gagal upload gambar: ' + e.message);
+    }
+  }
+
   var ss = getDb();
   var sheet = ss.getSheetByName('Gallery');
   var id = Utilities.getUuid();
-  sheet.appendRow([id, item.type, item.url]);
+  sheet.appendRow([id, item.type, item.url, item.name]);
   return { success: true, id: id };
 }
 
@@ -162,8 +189,10 @@ function getRSVPs(token) {
   var data = sheet.getDataRange().getValues();
   var rsvps = [];
   for (var i = 1; i < data.length; i++) {
+    var ts = data[i][0];
+    if (ts instanceof Date) ts = ts.toISOString();
     rsvps.push({
-      timestamp: data[i][0],
+      timestamp: ts,
       name: data[i][1],
       attendance: data[i][2],
       guests: data[i][3],
@@ -186,11 +215,47 @@ function getPublicRSVPs() {
   var sheet = ss.getSheetByName('RSVP');
   var data = sheet.getDataRange().getValues();
   var rsvps = [];
-  for (var i = Math.max(1, data.length - 20); i < data.length; i++) { // only return last 20 messages for public view
-    rsvps.push({
-      name: data[i][1],
-      message: data[i][4]
-    });
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][4]) { // has message
+      rsvps.push({
+        timestamp: data[i][0] ? new Date(data[i][0]).toISOString() : null,
+        name: data[i][1],
+        message: data[i][4]
+      });
+    }
   }
   return rsvps.reverse();
+}
+
+function getOrCreateFolder(folderName, parentFolder) {
+  var parent = parentFolder ? parentFolder : DriveApp.getRootFolder();
+  var folders = parent.getFoldersByName(folderName);
+  if (folders.hasNext()) {
+    return folders.next();
+  } else {
+    return parent.createFolder(folderName);
+  }
+}
+
+function uploadFileToDrive(base64Data, filename, mimeType, folderName, parentFolderName) {
+  var parent = DriveApp.getRootFolder();
+  if (parentFolderName) {
+    parent = getOrCreateFolder(parentFolderName, parent);
+  }
+  var folder = getOrCreateFolder(folderName, parent);
+  
+  var data = Utilities.base64Decode(base64Data.split(',')[1]);
+  var blob = Utilities.newBlob(data, mimeType, filename);
+  
+  // If a file with the same name exists, delete it (useful for denah.png)
+  var existing = folder.getFilesByName(filename);
+  while (existing.hasNext()) {
+    existing.next().setTrashed(true);
+  }
+  
+  var file = folder.createFile(blob);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  
+  // Return the direct view URL
+  return 'https://drive.google.com/thumbnail?id=' + file.getId() + '&sz=w1000';
 }

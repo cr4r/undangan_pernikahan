@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Undangan Pernikahan</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <?!= include('Style'); ?>
 </head>
+
 <body>
 
   <!-- Loading Screen -->
@@ -24,12 +29,28 @@
     <i class="fas fa-music"></i>
   </button>
 
+  <!-- Mega Menu -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <ul class="nav-links">
+        <li><a href="#events"><i class="fas fa-calendar-alt"></i> <span>Acara</span></a></li>
+        <li><a href="#gallery"><i class="fas fa-images"></i> <span>Galeri</span></a></li>
+        <li><a href="#gift"><i class="fas fa-gift"></i> <span>Hadiah</span></a></li>
+        <li><a href="#rsvp"><i class="fas fa-envelope-open-text"></i> <span>Ucapan</span></a></li>
+      </ul>
+    </div>
+  </nav>
+
   <!-- Hero Section -->
   <header class="hero" id="home">
+    <div class="carousel" id="hero-carousel">
+      <!-- Carousel images will be inserted here by JS -->
+    </div>
     <div class="hero-overlay"></div>
     <div class="hero-content">
       <h3 class="subtitle">The Wedding Of</h3>
-      <h1 class="title"><span id="bride-name-hero">P</span> & <span id="groom-name-hero">P</span></h1>
+      <h1 class="title"><span id="bride-name-hero">P</span><br><span class="and-hero">&</span><br><span
+          id="groom-name-hero">P</span></h1>
       <p class="date" id="hero-date">01 Desember 2026</p>
       <button class="btn-primary" onclick="openInvitation()">Buka Undangan</button>
     </div>
@@ -38,36 +59,45 @@
   <!-- Main Content (Hidden Initially) -->
   <main id="main-content" style="display: none;">
     <!-- Greeting Section -->
-    <section class="section greeting text-center">
+    <section class="section greeting text-center" id="greeting">
       <div class="container">
         <h2 class="section-title">Assalamu'alaikum Warahmatullahi Wabarakatuh</h2>
         <p class="greeting-text" id="greeting-text">
-          Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan resepsi pernikahan putra-putri kami.
+          Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan resepsi pernikahan putra-putri
+          kami.
         </p>
         <div class="couple-names">
           <div class="person">
             <h3 id="bride-name">Putri</h3>
-            <p>Putri dari Bpk. ... & Ibu ...</p>
+            <p id="bride-desc">Putri dari Bpk. ... & Ibu ...</p>
           </div>
           <div class="and">&</div>
           <div class="person">
             <h3 id="groom-name">Putra</h3>
-            <p>Putra dari Bpk. ... & Ibu ...</p>
+            <p id="groom-desc">Putra dari Bpk. ... & Ibu ...</p>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Event Details & Countdown -->
-    <section class="section event-details">
+    <section class="section event-details" id="events">
       <div class="container text-center">
         <h2 class="section-title">Waktu & Tempat</h2>
-        
+
         <div class="countdown-container">
-          <div class="countdown-item"><span id="days">00</span><p>Hari</p></div>
-          <div class="countdown-item"><span id="hours">00</span><p>Jam</p></div>
-          <div class="countdown-item"><span id="mins">00</span><p>Menit</p></div>
-          <div class="countdown-item"><span id="secs">00</span><p>Detik</p></div>
+          <div class="countdown-item"><span id="days">00</span>
+            <p>Hari</p>
+          </div>
+          <div class="countdown-item"><span id="hours">00</span>
+            <p>Jam</p>
+          </div>
+          <div class="countdown-item"><span id="mins">00</span>
+            <p>Menit</p>
+          </div>
+          <div class="countdown-item"><span id="secs">00</span>
+            <p>Detik</p>
+          </div>
         </div>
 
         <div class="events">
@@ -78,7 +108,8 @@
           </div>
           <div class="event-card">
             <h3>Resepsi</h3>
-            <p class="date"><i class="far fa-calendar-alt"></i> <span id="resepsi-date">Selasa, 01 Desember 2026</span></p>
+            <p class="date"><i class="far fa-calendar-alt"></i> <span id="resepsi-date">Selasa, 01 Desember 2026</span>
+            </p>
             <p class="time"><i class="far fa-clock"></i> <span id="resepsi-time">11:00 WIB - Selesai</span></p>
           </div>
         </div>
@@ -86,7 +117,7 @@
         <div class="location-card">
           <h3>Lokasi Acara</h3>
           <p>Gedung Serbaguna Palembang</p>
-          <div id="map-container" class="map-container">
+          <div id="map-container" class="map-container" onclick="openMapModal()">
             <!-- Map Image or Iframe will be inserted here -->
           </div>
           <a href="#" id="maps-link" target="_blank" class="btn-secondary mt-3">Buka Google Maps</a>
@@ -94,8 +125,26 @@
       </div>
     </section>
 
+    <!-- Map Modal -->
+    <div id="map-modal" class="modal">
+      <span class="modal-close" onclick="closeMapModal()">&times;</span>
+      <img class="modal-content" id="modal-map-img">
+    </div>
+
+    <!-- Digital Envelope (Gift) Section -->
+    <section class="section gift-section" id="gift">
+      <div class="container text-center">
+        <h2 class="section-title">Amplop Digital</h2>
+        <p style="margin-bottom: 2rem;">Bagi keluarga dan sahabat yang ingin memberikan tanda kasih untuk kami, dapat melalui:</p>
+        
+        <div id="gift-list" style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center;">
+          <!-- Gift cards will be injected here -->
+        </div>
+      </div>
+    </section>
+
     <!-- Gallery Section -->
-    <section class="section gallery-section">
+    <section class="section gallery-section" id="gallery">
       <div class="container text-center">
         <h2 class="section-title">Galeri Kami</h2>
         <div class="gallery-grid" id="gallery-grid">
@@ -105,11 +154,12 @@
     </section>
 
     <!-- RSVP Section -->
-    <section class="section rsvp-section">
+    <section class="section rsvp-section" id="rsvp">
       <div class="container">
-        <h2 class="section-title text-center">RSVP & Ucapan</h2>
+        <h2 class="section-title text-center" style="display:block;">Kata Ucapan</h2>
         <div class="rsvp-wrapper">
           <form id="rsvp-form" onsubmit="submitRSVP(event)">
+            <h3 style="margin-bottom: 1rem; color: var(--primary-color);">Kirim Ucapan</h3>
             <div class="form-group">
               <label for="rsvp-name">Nama Anda</label>
               <input type="text" id="rsvp-name" required placeholder="Masukkan nama Anda">
@@ -123,20 +173,17 @@
             </div>
             <div class="form-group" id="guests-group">
               <label for="rsvp-guests">Jumlah Tamu</label>
-              <select id="rsvp-guests">
-                <option value="1">1 Orang</option>
-                <option value="2">2 Orang</option>
-              </select>
+              <input type="number" id="rsvp-guests" min="1" max="10" value="1" required>
             </div>
             <div class="form-group">
               <label for="rsvp-message">Ucapan / Doa</label>
               <textarea id="rsvp-message" rows="4" required placeholder="Tuliskan doa dan harapan Anda"></textarea>
             </div>
-            <button type="submit" class="btn-primary w-100" id="btn-submit-rsvp">Kirim RSVP</button>
+            <button type="submit" class="btn-primary w-100" id="btn-submit-rsvp">Kirim Ucapan</button>
           </form>
 
           <div class="wishes-container">
-            <h3>Ucapan & Doa</h3>
+            <h3 style="margin-bottom: 1rem; color: var(--primary-color);">Ucapan dari Teman</h3>
             <div class="wishes-list" id="wishes-list">
               <!-- Wishes will be populated here -->
             </div>
@@ -151,6 +198,17 @@
     </footer>
   </main>
 
-  <?!= include('Script'); ?>
+    <!-- Bottom Navbar for Mobile -->
+    <nav class="bottom-nav">
+      <ul>
+        <li><a href="#events"><i class="fas fa-calendar-alt"></i><span>Acara</span></a></li>
+        <li><a href="#gallery"><i class="fas fa-images"></i><span>Galeri</span></a></li>
+        <li><a href="#gift"><i class="fas fa-gift"></i><span>Hadiah</span></a></li>
+        <li><a href="#rsvp"><i class="fas fa-envelope-open-text"></i><span>Ucapan</span></a></li>
+      </ul>
+    </nav>
+
+    <?!= include('Script'); ?>
 </body>
+
 </html>

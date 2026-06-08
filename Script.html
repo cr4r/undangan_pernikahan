@@ -2,6 +2,25 @@
   let isPlaying = false;
   let targetDate = new Date().getTime();
 
+  const Toast = Swal.mixin({
+    toast: true,
+    position: "bottom",
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.onmouseenter = Swal.stopTimer;
+      toast.onmouseleave = Swal.resumeTimer;
+    }
+  });
+
+  function showToast(message, type = 'success') {
+    Toast.fire({
+      icon: type,
+      title: message
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     // Load data from Google Apps Script
     google.script.run.withSuccessHandler(initPage).getPublicData();
@@ -16,7 +35,43 @@
         guestsGroup.style.display = 'none';
       }
     });
+
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('navbar');
+      if (window.scrollY > 50) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    });
+
   });
+
+  // Carousel Logic
+  const carouselImages = [
+    'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80',
+    'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1920&q=80',
+    'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1920&q=80'
+  ];
+  let currentSlide = 0;
+
+  function initCarousel() {
+    const container = document.getElementById('hero-carousel');
+    carouselImages.forEach((src, idx) => {
+      const div = document.createElement('div');
+      div.className = 'carousel-slide' + (idx === 0 ? ' active' : '');
+      div.style.backgroundImage = `url(${src})`;
+      container.appendChild(div);
+    });
+
+    setInterval(() => {
+      const slides = document.querySelectorAll('.carousel-slide');
+      slides[currentSlide].classList.remove('active');
+      currentSlide = (currentSlide + 1) % slides.length;
+      slides[currentSlide].classList.add('active');
+    }, 5000);
+  }
 
   function initPage(data) {
     const s = data.settings;
@@ -26,6 +81,8 @@
     document.getElementById('groom-name-hero').textContent = s.GroomName;
     document.getElementById('bride-name').textContent = s.BrideName;
     document.getElementById('groom-name').textContent = s.GroomName;
+    document.getElementById('bride-desc').textContent = s.BrideDesc || 'Putri dari ...';
+    document.getElementById('groom-desc').textContent = s.GroomDesc || 'Putra dari ...';
     document.getElementById('footer-names').textContent = s.BrideName + ' & ' + s.GroomName;
     
     // Populate Dates
@@ -48,9 +105,42 @@
     // Map Image
     const mapContainer = document.getElementById('map-container');
     if (s.MapImage && s.MapImage.trim() !== '') {
-      mapContainer.innerHTML = `<img src="${s.MapImage}" alt="Denah Lokasi">`;
+      mapContainer.innerHTML = `<img src="${s.MapImage}" alt="Denah Lokasi" id="actual-map-img" style="width:100%; border-radius:10px;">`;
+      document.getElementById('modal-map-img').src = s.MapImage;
     } else {
       mapContainer.innerHTML = `<p style="padding-top:100px;">Klik tombol di bawah untuk melihat peta</p>`;
+    }
+
+    // Bank / Gift Settings
+    if (s.BankAccounts) {
+      try {
+        const banks = JSON.parse(s.BankAccounts);
+        const listContainer = document.getElementById('gift-list');
+        listContainer.innerHTML = '';
+        banks.forEach((b, idx) => {
+          let icon = 'fa-credit-card';
+          let bName = b.bank.toLowerCase();
+          if(bName.includes('gopay') || bName.includes('ovo') || bName.includes('dana') || bName.includes('shopee') || bName.includes('wallet')) {
+            icon = 'fa-wallet';
+          } else if(bName.includes('paypal')) {
+            icon = 'fa-paypal';
+          }
+          
+          listContainer.innerHTML += `
+            <div class="gift-card">
+              <div class="gift-icon"><i class="fas ${icon}"></i></div>
+              <h3 style="margin-top: 15px;">${escapeHTML(b.bank)}</h3>
+              <p class="account-number" id="bank-acc-${idx}">${escapeHTML(b.account)}</p>
+              <p class="account-holder">a.n <span>${escapeHTML(b.name)}</span></p>
+              <button class="btn-primary mt-3" onclick="copyBankAccount('bank-acc-${idx}')">
+                <i class="far fa-copy"></i> Salin No. Rekening
+              </button>
+            </div>
+          `;
+        });
+      } catch(e) {
+        console.error("Gagal memproses data bank", e);
+      }
     }
 
     // Audio
@@ -76,15 +166,27 @@
     // RSVPs
     const wishesList = document.getElementById('wishes-list');
     if (data.rsvps && data.rsvps.length > 0) {
-      data.rsvps.forEach(rsvp => {
+      data.rsvps.forEach(item => {
         const div = document.createElement('div');
         div.className = 'wish-card';
-        div.innerHTML = `<h4>${escapeHTML(rsvp.name)}</h4><p>${escapeHTML(rsvp.message)}</p>`;
+        
+        let dateStr = '';
+        if (item.timestamp) {
+          const dt = new Date(item.timestamp);
+          dateStr = dt.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        div.innerHTML = `<h4>${escapeHTML(item.name)}</h4>
+                         ${dateStr ? `<p class="wish-date">${dateStr}</p>` : ''}
+                         <p>${escapeHTML(item.message)}</p>`;
         wishesList.appendChild(div);
       });
     } else {
       wishesList.innerHTML = '<p>Belum ada ucapan.</p>';
     }
+
+    // Initialize Carousel
+    initCarousel();
 
     // Hide loader
     document.getElementById('loader').style.display = 'none';
@@ -141,6 +243,33 @@
     }, 1000);
   }
 
+  function loadWishes() {
+    google.script.run.withSuccessHandler((data) => {
+      const list = document.getElementById('wishes-list');
+      list.innerHTML = '';
+      const rsvps = data.rsvps;
+      if(!rsvps || rsvps.length === 0) {
+        list.innerHTML = '<p>Belum ada ucapan.</p>';
+        return;
+      }
+      rsvps.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'wish-card';
+        
+        let dateStr = '';
+        if (item.timestamp) {
+          const dt = new Date(item.timestamp);
+          dateStr = dt.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        div.innerHTML = `<h4>${escapeHTML(item.name)}</h4>
+                         ${dateStr ? `<p class="wish-date">${dateStr}</p>` : ''}
+                         <p>${escapeHTML(item.message)}</p>`;
+        list.appendChild(div);
+      });
+    }).getPublicData();
+  }
+
   function submitRSVP(e) {
     e.preventDefault();
     const btn = document.getElementById('btn-submit-rsvp');
@@ -156,22 +285,39 @@
 
     google.script.run.withSuccessHandler((res) => {
       if(res.success) {
-        alert('Terima kasih, RSVP dan ucapan Anda telah terkirim!');
-        
-        // Add to wishes list instantly
-        const wishesList = document.getElementById('wishes-list');
-        const div = document.createElement('div');
-        div.className = 'wish-card';
-        div.innerHTML = `<h4>${escapeHTML(data.name)}</h4><p>${escapeHTML(data.message)}</p>`;
-        wishesList.insertBefore(div, wishesList.firstChild);
-
+        showToast('Terima kasih atas ucapan Anda!', 'success');
         document.getElementById('rsvp-form').reset();
+        loadWishes();
       } else {
-        alert('Terjadi kesalahan. Silakan coba lagi.');
+        showToast('Terjadi kesalahan. Coba lagi.', 'error');
       }
-      btn.textContent = 'Kirim RSVP';
+      btn.textContent = 'Kirim Ucapan';
+      btn.disabled = false;
+    }).withFailureHandler((err) => {
+      showToast('Terjadi kesalahan. Coba lagi.', 'error');
+      btn.textContent = 'Kirim Ucapan';
       btn.disabled = false;
     }).saveRSVP(data);
+  }
+
+  function copyBankAccount(elementId) {
+    const acc = document.getElementById(elementId).textContent;
+    navigator.clipboard.writeText(acc).then(() => {
+      showToast('Nomor Rekening Berhasil Disalin!', 'success');
+    }).catch(err => {
+      showToast('Gagal menyalin rekening.', 'error');
+    });
+  }
+
+  function openMapModal() {
+    const mapImg = document.getElementById('actual-map-img');
+    if (mapImg) {
+      document.getElementById('map-modal').style.display = "block";
+    }
+  }
+
+  function closeMapModal() {
+    document.getElementById('map-modal').style.display = "none";
   }
 
   function escapeHTML(str) {
