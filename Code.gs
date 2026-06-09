@@ -115,6 +115,23 @@ function saveSettings(settings, token) {
     settings.MapImage = uploadFileToDrive(settings.MapImageBase64, 'denah.png', settings.MapImageMime, 'Undangan Pernikahan');
   }
 
+  // Handle Bank Icons
+  if (settings.BankAccounts) {
+    try {
+      var banks = JSON.parse(settings.BankAccounts);
+      for (var j = 0; j < banks.length; j++) {
+        if (banks[j].iconBase64 && banks[j].iconBase64.startsWith('data:image')) {
+          banks[j].iconUrl = uploadFileToDrive(banks[j].iconBase64, 'icon_bank_' + Utilities.getUuid().substring(0,8) + '.png', banks[j].iconMime || 'image/png', 'Undangan Pernikahan');
+        }
+        delete banks[j].iconBase64;
+        delete banks[j].iconMime;
+      }
+      settings.BankAccounts = JSON.stringify(banks);
+    } catch(e) {
+      // ignore
+    }
+  }
+
   // Cek key yang ada di sheet
   var existingKeys = {};
   for (var i = 1; i < data.length; i++) {

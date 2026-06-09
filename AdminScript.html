@@ -104,9 +104,26 @@
             <input type="text" class="floating-input bank-holder-input" value="${escapeHTML(bank.name)}" placeholder=" " required>
             <label class="floating-label">Atas Nama</label>
           </div>
+          <div class="file-upload-wrapper" style="margin-top: 15px;">
+            <label>Icon Rekening (Pilih Gambar)</label>
+            <input type="file" class="bank-icon-file" accept="image/*" onchange="handleBankIconUpload(this)">
+            <input type="hidden" class="bank-icon-base64" value="${bank.iconBase64 || bank.iconUrl || ''}">
+            <input type="hidden" class="bank-icon-mime" value="${bank.iconMime || ''}">
+            ${bank.iconUrl ? `<img src="${bank.iconUrl}" style="height:30px; margin-top:5px; border-radius:5px;">` : ''}
+          </div>
         </div>
       `;
     });
+  }
+
+  function handleBankIconUpload(input) {
+    if (input.files.length > 0) {
+      compressImage(input.files[0], 200, 200, 0.8, function(dataUrl) {
+        const item = input.closest('.bank-item');
+        item.querySelector('.bank-icon-base64').value = dataUrl;
+        item.querySelector('.bank-icon-mime').value = input.files[0].type;
+      });
+    }
   }
 
   function addBankField() {
@@ -128,7 +145,10 @@
       bankAccountsList.push({
         bank: item.querySelector('.bank-name-input').value,
         account: item.querySelector('.bank-acc-input').value,
-        name: item.querySelector('.bank-holder-input').value
+        name: item.querySelector('.bank-holder-input').value,
+        iconBase64: item.querySelector('.bank-icon-base64').value,
+        iconMime: item.querySelector('.bank-icon-mime').value,
+        iconUrl: item.querySelector('.bank-icon-base64').value.startsWith('http') ? item.querySelector('.bank-icon-base64').value : undefined
       });
     });
   }
