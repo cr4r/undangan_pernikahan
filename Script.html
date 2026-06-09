@@ -25,11 +25,11 @@
     // Load data from Google Apps Script
     google.script.run.withSuccessHandler(initPage).getPublicData();
     document.getElementById('year').textContent = new Date().getFullYear();
-    
+
     // RSVP Attendance Toggle
-    document.getElementById('rsvp-attendance').addEventListener('change', function() {
+    document.getElementById('rsvp-attendance').addEventListener('change', function () {
       const guestsGroup = document.getElementById('guests-group');
-      if(this.value === 'Hadir') {
+      if (this.value === 'Hadir') {
         guestsGroup.style.display = 'block';
       } else {
         guestsGroup.style.display = 'none';
@@ -75,7 +75,7 @@
 
   function initPage(data) {
     const s = data.settings;
-    
+
     // Populate Names
     document.getElementById('bride-name-hero').textContent = s.BrideName;
     document.getElementById('groom-name-hero').textContent = s.GroomName;
@@ -84,24 +84,24 @@
     document.getElementById('bride-desc').textContent = s.BrideDesc || 'Putri dari ...';
     document.getElementById('groom-desc').textContent = s.GroomDesc || 'Putra dari ...';
     document.getElementById('footer-names').textContent = s.BrideName + ' & ' + s.GroomName;
-    
+
     // Populate Dates
     const akad = new Date(s.AkadDate);
     const resepsi = new Date(s.ResepsiDate);
-    
+
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     document.getElementById('hero-date').textContent = resepsi.toLocaleDateString('id-ID', options);
     document.getElementById('akad-date').textContent = akad.toLocaleDateString('id-ID', options);
-    document.getElementById('akad-time').textContent = akad.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + ' WIB - Selesai';
+    document.getElementById('akad-time').textContent = akad.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB - Selesai';
     document.getElementById('resepsi-date').textContent = resepsi.toLocaleDateString('id-ID', options);
-    document.getElementById('resepsi-time').textContent = resepsi.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + ' WIB - Selesai';
-    
+    document.getElementById('resepsi-time').textContent = resepsi.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB - Selesai';
+
     targetDate = resepsi.getTime();
     startCountdown();
 
     document.getElementById('greeting-text').textContent = s.Greeting;
     document.getElementById('maps-link').href = s.MapsLink;
-    
+
     // Map Image
     const mapContainer = document.getElementById('map-container');
     if (s.MapImage && s.MapImage.trim() !== '') {
@@ -117,28 +117,27 @@
         const banks = JSON.parse(s.BankAccounts);
         const listContainer = document.getElementById('gift-list');
         listContainer.innerHTML = '';
+
+        // Define global banks array for modal access
+        window.giftBanks = banks;
+
         banks.forEach((b, idx) => {
           let icon = 'fa-credit-card';
           let bName = b.bank.toLowerCase();
-          if(bName.includes('gopay') || bName.includes('ovo') || bName.includes('dana') || bName.includes('shopee') || bName.includes('wallet')) {
+          if (bName.includes('gopay') || bName.includes('ovo') || bName.includes('dana') || bName.includes('shopee') || bName.includes('wallet')) {
             icon = 'fa-wallet';
-          } else if(bName.includes('paypal')) {
+          } else if (bName.includes('paypal')) {
             icon = 'fa-paypal';
           }
-          
+
           listContainer.innerHTML += `
-            <div class="gift-card">
-              <div class="gift-icon"><i class="fas ${icon}"></i></div>
-              <h3 style="margin-top: 15px;">${escapeHTML(b.bank)}</h3>
-              <p class="account-number" id="bank-acc-${idx}">${escapeHTML(b.account)}</p>
-              <p class="account-holder">a.n <span>${escapeHTML(b.name)}</span></p>
-              <button class="btn-primary mt-3" onclick="copyBankAccount('bank-acc-${idx}')">
-                <i class="far fa-copy"></i> Salin No. Rekening
-              </button>
+            <div class="gift-thumbnail" onclick="openGiftModal(${idx}, '${icon}')">
+              <div class="gift-icon-thumb"><i class="fas ${icon}"></i></div>
+              <h4>${escapeHTML(b.bank)}</h4>
             </div>
           `;
         });
-      } catch(e) {
+      } catch (e) {
         console.error("Gagal memproses data bank", e);
       }
     }
@@ -168,21 +167,31 @@
     if (data.rsvps && data.rsvps.length > 0) {
       data.rsvps.forEach(item => {
         const div = document.createElement('div');
-        div.className = 'wish-card';
-        
+        div.className = 'wish-card modern-wish';
+
         let dateStr = '';
         if (item.timestamp) {
           const dt = new Date(item.timestamp);
           dateStr = dt.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         }
 
-        div.innerHTML = `<h4>${escapeHTML(item.name)}</h4>
-                         ${dateStr ? `<p class="wish-date">${dateStr}</p>` : ''}
-                         <p>${escapeHTML(item.message)}</p>`;
+        const initial = item.name ? item.name.charAt(0).toUpperCase() : '?';
+        const attendanceText = item.attendance ? item.attendance : 'Menunggu Konfirmasi';
+        const badgeClass = item.attendance === 'Hadir' ? 'badge-hadir' : 'badge-absen';
+        const badgeIcon = item.attendance === 'Hadir' ? 'fa-check-circle' : 'fa-info-circle';
+
+        div.innerHTML = `
+          <div class="wish-avatar">${initial}</div>
+          <div class="wish-content">
+            <h4>${escapeHTML(item.name)} <span class="wish-badge ${badgeClass}"><i class="fas ${badgeIcon}"></i> ${attendanceText}</span></h4>
+            ${dateStr ? `<p class="wish-date"><i class="far fa-clock"></i> ${dateStr}</p>` : ''}
+            <p class="wish-text">"${escapeHTML(item.message)}"</p>
+          </div>
+        `;
         wishesList.appendChild(div);
       });
     } else {
-      wishesList.innerHTML = '<p>Belum ada ucapan.</p>';
+      wishesList.innerHTML = '<p class="text-center" style="color:#777; font-style:italic;">Jadilah yang pertama memberikan ucapan.</p>';
     }
 
     // Initialize Carousel
@@ -196,7 +205,7 @@
     document.getElementById('home').style.display = 'none';
     document.getElementById('main-content').style.display = 'block';
     window.scrollTo(0, 0);
-    
+
     // Play music
     const audio = document.getElementById('bg-music');
     audio.play().then(() => {
@@ -248,23 +257,33 @@
       const list = document.getElementById('wishes-list');
       list.innerHTML = '';
       const rsvps = data.rsvps;
-      if(!rsvps || rsvps.length === 0) {
-        list.innerHTML = '<p>Belum ada ucapan.</p>';
+      if (!rsvps || rsvps.length === 0) {
+        list.innerHTML = '<p class="text-center" style="color:#777; font-style:italic;">Jadilah yang pertama memberikan ucapan.</p>';
         return;
       }
       rsvps.forEach(item => {
         const div = document.createElement('div');
-        div.className = 'wish-card';
-        
+        div.className = 'wish-card modern-wish';
+
         let dateStr = '';
         if (item.timestamp) {
           const dt = new Date(item.timestamp);
           dateStr = dt.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         }
 
-        div.innerHTML = `<h4>${escapeHTML(item.name)}</h4>
-                         ${dateStr ? `<p class="wish-date">${dateStr}</p>` : ''}
-                         <p>${escapeHTML(item.message)}</p>`;
+        const initial = item.name ? item.name.charAt(0).toUpperCase() : '?';
+        const attendanceText = item.attendance ? item.attendance : 'Menunggu Konfirmasi';
+        const badgeClass = item.attendance === 'Hadir' ? 'badge-hadir' : 'badge-absen';
+        const badgeIcon = item.attendance === 'Hadir' ? 'fa-check-circle' : 'fa-info-circle';
+
+        div.innerHTML = `
+          <div class="wish-avatar">${initial}</div>
+          <div class="wish-content">
+            <h4>${escapeHTML(item.name)} <span class="wish-badge ${badgeClass}"><i class="fas ${badgeIcon}"></i> ${attendanceText}</span></h4>
+            ${dateStr ? `<p class="wish-date"><i class="far fa-clock"></i> ${dateStr}</p>` : ''}
+            <p class="wish-text">"${escapeHTML(item.message)}"</p>
+          </div>
+        `;
         list.appendChild(div);
       });
     }).getPublicData();
@@ -284,7 +303,7 @@
     };
 
     google.script.run.withSuccessHandler((res) => {
-      if(res.success) {
+      if (res.success) {
         showToast('Terima kasih atas ucapan Anda!', 'success');
         document.getElementById('rsvp-form').reset();
         loadWishes();
@@ -309,6 +328,23 @@
     });
   }
 
+  function openGiftModal(idx, iconClass) {
+    if (!window.giftBanks || !window.giftBanks[idx]) return;
+    const b = window.giftBanks[idx];
+    document.getElementById('modal-gift-icon').className = 'fas ' + iconClass;
+    document.getElementById('modal-gift-bank').textContent = b.bank;
+    document.getElementById('modal-gift-account').textContent = b.account;
+    document.getElementById('modal-gift-holder').textContent = b.name;
+    document.getElementById('btn-copy-modal').onclick = function () {
+      copyBankAccount('modal-gift-account');
+    };
+    document.getElementById('gift-modal').style.display = "flex";
+  }
+
+  function closeGiftModal() {
+    document.getElementById('gift-modal').style.display = "none";
+  }
+
   function openMapModal() {
     const mapImg = document.getElementById('actual-map-img');
     if (mapImg) {
@@ -321,14 +357,14 @@
   }
 
   function escapeHTML(str) {
-    return str.replace(/[&<>'"]/g, 
+    return str.replace(/[&<>'"]/g,
       tag => ({
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          "'": '&#39;',
-          '"': '&quot;'
-        }[tag] || tag)
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      }[tag] || tag)
     );
   }
 </script>

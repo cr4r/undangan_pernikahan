@@ -115,12 +115,23 @@ function saveSettings(settings, token) {
     settings.MapImage = uploadFileToDrive(settings.MapImageBase64, 'denah.png', settings.MapImageMime, 'Undangan Pernikahan');
   }
 
+  // Cek key yang ada di sheet
+  var existingKeys = {};
   for (var i = 1; i < data.length; i++) {
-    var key = data[i][0];
-    if (settings.hasOwnProperty(key)) {
-      sheet.getRange(i + 1, 2).setValue(settings[key]);
+    existingKeys[data[i][0]] = i + 1; // row index (1-based)
+  }
+
+  // Update or Append
+  for (var key in settings) {
+    if (key !== 'MapImageBase64' && key !== 'MapImageMime') { // Skip temporary upload variables
+      if (existingKeys[key]) {
+        sheet.getRange(existingKeys[key], 2).setValue(settings[key]);
+      } else {
+        sheet.appendRow([key, settings[key]]);
+      }
     }
   }
+  
   return { success: true };
 }
 

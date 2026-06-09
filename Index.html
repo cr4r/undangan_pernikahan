@@ -29,18 +29,6 @@
     <i class="fas fa-music"></i>
   </button>
 
-  <!-- Mega Menu -->
-  <nav class="navbar" id="navbar">
-    <div class="nav-container">
-      <ul class="nav-links">
-        <li><a href="#events"><i class="fas fa-calendar-alt"></i> <span>Acara</span></a></li>
-        <li><a href="#gallery"><i class="fas fa-images"></i> <span>Galeri</span></a></li>
-        <li><a href="#gift"><i class="fas fa-gift"></i> <span>Hadiah</span></a></li>
-        <li><a href="#rsvp"><i class="fas fa-envelope-open-text"></i> <span>Ucapan</span></a></li>
-      </ul>
-    </div>
-  </nav>
-
   <!-- Hero Section -->
   <header class="hero" id="home">
     <div class="carousel" id="hero-carousel">
@@ -66,15 +54,27 @@
           Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan resepsi pernikahan putra-putri
           kami.
         </p>
+        <div class="hero-ornament top-ornament" style="margin-bottom: 20px; animation: fadeInDown 1.5s ease;">
+          <h1
+            style="font-family: 'Amiri', serif; font-size: 2.5rem; color: var(--secondary-color); font-weight: normal; margin: 0;">
+            بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيم</h1>
+        </div>
+        <p class="hero-quote"
+          style="font-size: 0.9rem; font-style: italic; max-width: 600px; margin: 0 auto 30px auto; opacity: 0.9; line-height: 1.6; animation: fadeIn 2s ease;">
+          "Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu isteri-isteri dari jenismu sendiri,
+          supaya kamu cenderung dan merasa tenteram kepadanya, dan dijadikan-Nya diantaramu rasa kasih dan sayang."<br>
+          <span style="font-weight: 600;">(QS. Ar-Rum: 21)</span>
+        </p>
+
         <div class="couple-names">
-          <div class="person">
-            <h3 id="bride-name">Putri</h3>
-            <p id="bride-desc">Putri dari Bpk. ... & Ibu ...</p>
-          </div>
-          <div class="and">&</div>
           <div class="person">
             <h3 id="groom-name">Putra</h3>
             <p id="groom-desc">Putra dari Bpk. ... & Ibu ...</p>
+          </div>
+          <div class="and">&</div>
+          <div class="person">
+            <h3 id="bride-name">Putri</h3>
+            <p id="bride-desc">Putri dari Bpk. ... & Ibu ...</p>
           </div>
         </div>
       </div>
@@ -116,7 +116,7 @@
 
         <div class="location-card">
           <h3>Lokasi Acara</h3>
-          <p>Gedung Serbaguna Palembang</p>
+          <p>Gedung Raga Seridalam</p>
           <div id="map-container" class="map-container" onclick="openMapModal()">
             <!-- Map Image or Iframe will be inserted here -->
           </div>
@@ -131,24 +131,39 @@
       <img class="modal-content" id="modal-map-img">
     </div>
 
-    <!-- Digital Envelope (Gift) Section -->
-    <section class="section gift-section" id="gift">
-      <div class="container text-center">
-        <h2 class="section-title">Amplop Digital</h2>
-        <p style="margin-bottom: 2rem;">Bagi keluarga dan sahabat yang ingin memberikan tanda kasih untuk kami, dapat melalui:</p>
-        
-        <div id="gift-list" style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center;">
-          <!-- Gift cards will be injected here -->
-        </div>
-      </div>
-    </section>
-
     <!-- Gallery Section -->
     <section class="section gallery-section" id="gallery">
       <div class="container text-center">
         <h2 class="section-title">Galeri Kami</h2>
         <div class="gallery-grid" id="gallery-grid">
           <!-- Gallery items will be populated here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Digital Envelope (Gift) Section -->
+    <section class="section gift-section" id="gift">
+      <div class="container text-center">
+        <h2 class="section-title">Amplop Digital</h2>
+        <p style="margin-bottom: 2rem;">Bagi keluarga dan sahabat yang ingin memberikan tanda kasih untuk kami, dapat
+          melalui:</p>
+
+        <div id="gift-list" class="gift-thumbnail-list">
+          <!-- Gift cards will be injected here -->
+        </div>
+
+        <!-- Gift Modal -->
+        <div id="gift-modal" class="modal">
+          <span class="modal-close" onclick="closeGiftModal()">&times;</span>
+          <div class="modal-content gift-modal-content">
+            <div class="gift-icon-modal"><i id="modal-gift-icon" class="fas fa-credit-card"></i></div>
+            <h3 id="modal-gift-bank">Bank</h3>
+            <p class="account-number" id="modal-gift-account">-</p>
+            <p class="account-holder">a.n <span id="modal-gift-holder">-</span></p>
+            <button class="btn-primary mt-3" id="btn-copy-modal">
+              <i class="far fa-copy"></i> Salin No. Rekening
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -182,10 +197,12 @@
             <button type="submit" class="btn-primary w-100" id="btn-submit-rsvp">Kirim Ucapan</button>
           </form>
 
-          <div class="wishes-container">
-            <h3 style="margin-bottom: 1rem; color: var(--primary-color);">Ucapan dari Teman</h3>
-            <div class="wishes-list" id="wishes-list">
-              <!-- Wishes will be populated here -->
+          <div class="guestbook-container" style="margin-top: 2rem;">
+            <h3
+              style="margin-bottom: 1rem; color: var(--primary-color); border-bottom: 2px solid var(--secondary-color); padding-bottom: 10px;">
+              Ucapan dari Teman</h3>
+            <div id="wishes-list" class="wishes-scroll-area">
+              <p>Memuat ucapan...</p>
             </div>
           </div>
         </div>
@@ -198,17 +215,17 @@
     </footer>
   </main>
 
-    <!-- Bottom Navbar for Mobile -->
-    <nav class="bottom-nav">
-      <ul>
-        <li><a href="#events"><i class="fas fa-calendar-alt"></i><span>Acara</span></a></li>
-        <li><a href="#gallery"><i class="fas fa-images"></i><span>Galeri</span></a></li>
-        <li><a href="#gift"><i class="fas fa-gift"></i><span>Hadiah</span></a></li>
-        <li><a href="#rsvp"><i class="fas fa-envelope-open-text"></i><span>Ucapan</span></a></li>
-      </ul>
-    </nav>
+  <!-- Bottom Navbar for Mobile -->
+  <nav class="bottom-nav">
+    <ul>
+      <li><a href="#events"><i class="fas fa-calendar-alt"></i><span>Acara</span></a></li>
+      <li><a href="#gallery"><i class="fas fa-images"></i><span>Galeri</span></a></li>
+      <li><a href="#gift"><i class="fas fa-gift"></i><span>Hadiah</span></a></li>
+      <li><a href="#rsvp"><i class="fas fa-envelope-open-text"></i><span>Ucapan</span></a></li>
+    </ul>
+  </nav>
 
-    <?!= include('Script'); ?>
+  <?!= include('Script'); ?>
 </body>
 
 </html>

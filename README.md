@@ -78,3 +78,22 @@ Aplikasi ini dilengkapi dengan Panel Admin eksklusif dan dinamis (Dashboard) yan
 ---
 
 *Dikembangkan untuk memberikan solusi E-Invitation premium dan bebas biaya server bulanan!*
+## ?? Changelog
+
+### v6.0.0
+- **Database Auto-Patching**: Memperbaiki fungsi saveSettings pada Code.gs. Sistem kini memindai struktur JSON (*dictionary keys*); apabila ia mendeteksi variabel pengaturan yang belum terekam di dalam file Google Spreadsheet (contohnya BankAccounts), fungsi ini tak lagi mengabaikannya melainkan secara agresif membuat baris baru (*appendRow*), memastikan kompatibilitas penuh bagi pengguna basis data lama.
+- **Hero & Greeting Section Enhancement**: Menginjeksi kaligrafi Bismillah dan kutipan romantis berbayang yang ditunjang oleh animasi *CSS Keyframes* pada area Kata Sambutan (*Greeting*), memberikan kesan religius yang mewah.
+- **Modern Chat-Bubble RSVP**: Meninggalkan desain *list view* konvensional pada buku tamu/ucapan dan bermigrasi ke UI berkelas *bubble chat*. Sistem mengalkulasi *string* secara leksikal untuk mencetak *Avatar inisial*, label *badge* status kehadiran dengan palet warna dinamis, serta mendesain ulang *wrapper* pesan menjadi kotak dialog bergaya obrolan (*chat-bubbles*).
+- **Navigation Update**: Menghapus baris Mega Menu (Topbar) seluruhnya dan memberlakukan *Bottom Navbar* eksklusif yang modern agar dapat ditampilkan dalam segala jenis ukuran layar secara persisten, memberikan antarmuka bergaya *Mobile App*.
+
+### v5.0.0
+- **Admin UX Revamp**: Mendesain ulang antarmuka panel *Admin Dashboard* menggunakan struktur *Sidebar* responsif berkelas atas. Mengatasi visual *bug* pada isian form bergaya *Floating Label*.
+- **Dynamic Gift/Envelope**: Modifikasi arsitektur database untuk menyimpan data perbankan sebagai list dinamis. Di antarmuka admin, sebuah tombol + Tambah Rekening disediakan. Aplikasi kini secara logis mendeteksi jenis akun bank / dompet digital (*E-Wallet*) yang dimasukkan untuk disesuaikan secara otomatif menjadi ikon yang relevan di *Frontend*.
+- **Index UI Fixes**: Memperbaiki masalah proporsional pada gambar lokasi peta *(map/denah)* dengan membingkainya dalam wadah berproperti *object-fit: contain*.
+
+### v7.0.0
+- **Estetika Adat Palembang**: Menyuntikkan warna Crimson dan Gold (emas) yang khas dengan bingkai dekoratif pada *Hero Section*. Mengubah gambar Bismillah menjadi teks kaligrafi Arab murni untuk ketajaman visual maksimal.
+- **Floating Glassmorphism Navbar**: Mendesain ulang navigasi bawah (*bottom-nav*) menjadi gaya melayang (*floating*) dengan efek kaca (*blur*) modern ala aplikasi premium iOS.
+- **Amplop Digital Interaktif**: Meringkas daftar rekening/amplop menjadi *Thumbnail Cards*. Jika diklik, rincian bank dan tombol "Salin Rekening" akan muncul melalui *Popup Modal* yang elegan.
+- **Galeri Masonry Premium**: Meninggalkan format *grid* kaku dan beralih menggunakan susunan *CSS Columns (Masonry)* yang dinamis, rapi, dan estetis layaknya galeri pameran profesional.
+- **Buku Tamu Scrollable & Bugfix**: Membungkus daftar ucapan (*wishes*) ke dalam kotak dengan baris gulir (*scroll*) khusus agar judul "*Ucapan dari Teman*" tetap persisten (*sticky*). Turut memperbaiki teks '*undefined*' pada label absensi tamu lama.
