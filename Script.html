@@ -124,7 +124,7 @@
           if (b.iconUrl) {
             iconHtml = `<img src="${b.iconUrl}" alt="${bName}" style="width:100%; height:100%; object-fit:contain;">`;
           }
-          
+
           listContainer.innerHTML += `
             <div class="gift-thumbnail" onclick="openGiftModal(${idx}, '${icon}')">
               <div class="gift-icon-thumb" style="${b.iconUrl ? 'width:50px; height:50px; display:flex; align-items:center; justify-content:center;' : ''}">${iconHtml}</div>
@@ -209,8 +209,9 @@
     const audio = document.getElementById('bg-music');
     audio.play().then(() => {
       document.getElementById('audio-btn').style.display = 'flex';
+      document.getElementById('auto-scroll-btn').style.display = 'flex';
     }).catch(err => console.log('Audio play failed', err));
-    
+
     // Init AOS Animations
     setTimeout(() => {
       AOS.init({
@@ -233,6 +234,40 @@
     }
     isPlaying = !isPlaying;
   }
+
+  // Auto Scroll Feature
+  let autoScrollInterval = null;
+  let isAutoScrolling = false;
+
+  function toggleAutoScroll() {
+    if (isAutoScrolling) stopAutoScroll();
+    else startAutoScroll();
+  }
+
+  function startAutoScroll() {
+    isAutoScrolling = true;
+    document.getElementById('auto-scroll-btn').innerHTML = '<i class="fas fa-pause"></i>';
+    autoScrollInterval = setInterval(() => {
+      window.scrollBy(0, 1);
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 2) {
+        stopAutoScroll();
+      }
+    }, 25);
+  }
+
+  function stopAutoScroll() {
+    isAutoScrolling = false;
+    document.getElementById('auto-scroll-btn').innerHTML = '<i class="fas fa-chevron-down"></i>';
+    if (autoScrollInterval) {
+      clearInterval(autoScrollInterval);
+      autoScrollInterval = null;
+    }
+  }
+
+  // Pause auto-scroll on manual interaction
+  window.addEventListener('wheel', () => { if (isAutoScrolling) stopAutoScroll(); }, { passive: true });
+  window.addEventListener('touchstart', () => { if (isAutoScrolling) stopAutoScroll(); }, { passive: true });
+
 
   function startCountdown() {
     setInterval(() => {
@@ -341,14 +376,14 @@
   function openGiftModal(idx, iconClass) {
     if (!window.giftBanks || !window.giftBanks[idx]) return;
     const b = window.giftBanks[idx];
-    
+
     const iconContainer = document.getElementById('modal-gift-icon-container');
     if (b.iconUrl) {
       iconContainer.innerHTML = `<img src="${b.iconUrl}" alt="${b.bank}" style="max-height:60px; object-fit:contain;">`;
     } else {
       iconContainer.innerHTML = `<i id="modal-gift-icon" class="fas ${iconClass}"></i>`;
     }
-    
+
     document.getElementById('modal-gift-bank').textContent = b.bank;
     document.getElementById('modal-gift-account').textContent = b.account;
     document.getElementById('modal-gift-holder').textContent = b.name;
@@ -388,7 +423,7 @@
   }
 
   // Close modals when clicking outside
-  window.onclick = function(event) {
+  window.onclick = function (event) {
     if (event.target.classList.contains('modal')) {
       event.target.style.display = "none";
     }

@@ -27,8 +27,11 @@
   <audio id="bg-music" loop>
     <source src="" type="audio/mpeg">
   </audio>
-  <button id="audio-btn" class="audio-btn" onclick="toggleAudio()">
+  <button id="audio-btn" class="audio-btn" onclick="toggleAudio()" style="display:none;" title="Play/Pause Music">
     <i class="fas fa-music"></i>
+  </button>
+  <button id="auto-scroll-btn" class="auto-scroll-btn" onclick="toggleAutoScroll()" style="display:none;" title="Auto Scroll">
+    <i class="fas fa-chevron-down"></i>
   </button>
 
   <!-- Hero Section -->
