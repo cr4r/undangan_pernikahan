@@ -98,7 +98,6 @@
     const mapContainer = document.getElementById('map-container');
     if (s.MapImage && s.MapImage.trim() !== '') {
       mapContainer.innerHTML = `<img src="${s.MapImage}" alt="Denah Lokasi" id="actual-map-img" style="width:100%; border-radius:10px;">`;
-      document.getElementById('modal-map-img').src = s.MapImage;
     } else {
       mapContainer.innerHTML = `<p style="padding-top:100px;">Klik tombol di bawah untuk melihat peta</p>`;
     }
@@ -161,6 +160,7 @@
     // RSVPs
     const wishesList = document.getElementById('wishes-list');
     if (data.rsvps && data.rsvps.length > 0) {
+      wishesList.innerHTML = '';
       data.rsvps.forEach(item => {
         const div = document.createElement('div');
         div.className = 'wish-card modern-wish';
@@ -172,14 +172,17 @@
         }
 
         const initial = item.name ? item.name.charAt(0).toUpperCase() : '?';
-        const attendanceText = item.attendance ? item.attendance : 'Menunggu Konfirmasi';
-        const badgeClass = item.attendance === 'Hadir' ? 'badge-hadir' : 'badge-absen';
-        const badgeIcon = item.attendance === 'Hadir' ? 'fa-check-circle' : 'fa-info-circle';
+        let badgeHtml = '';
+        if (item.attendance === 'Hadir' || item.attendance === 'Tidak Hadir') {
+          const badgeClass = item.attendance === 'Hadir' ? 'badge-hadir' : 'badge-absen';
+          const badgeIcon = item.attendance === 'Hadir' ? 'fa-check-circle' : 'fa-times-circle';
+          badgeHtml = `<span class="wish-badge ${badgeClass}"><i class="fas ${badgeIcon}"></i> ${item.attendance}</span>`;
+        }
 
         div.innerHTML = `
           <div class="wish-avatar">${initial}</div>
           <div class="wish-content">
-            <h4>${escapeHTML(item.name)} <span class="wish-badge ${badgeClass}"><i class="fas ${badgeIcon}"></i> ${attendanceText}</span></h4>
+            <h4>${escapeHTML(item.name)} ${badgeHtml}</h4>
             ${dateStr ? `<p class="wish-date"><i class="far fa-clock"></i> ${dateStr}</p>` : ''}
             <p class="wish-text">"${escapeHTML(item.message)}"</p>
           </div>
@@ -205,9 +208,17 @@
     // Play music
     const audio = document.getElementById('bg-music');
     audio.play().then(() => {
-      isPlaying = true;
-      document.getElementById('audio-btn').innerHTML = '<i class="fas fa-pause"></i>';
-    }).catch(e => console.log('Autoplay prevented'));
+      document.getElementById('audio-btn').style.display = 'flex';
+    }).catch(err => console.log('Audio play failed', err));
+    
+    // Init AOS Animations
+    setTimeout(() => {
+      AOS.init({
+        duration: 1000,
+        once: true,
+        offset: 100
+      });
+    }, 100);
   }
 
   function toggleAudio() {
@@ -268,14 +279,17 @@
         }
 
         const initial = item.name ? item.name.charAt(0).toUpperCase() : '?';
-        const attendanceText = item.attendance ? item.attendance : 'Menunggu Konfirmasi';
-        const badgeClass = item.attendance === 'Hadir' ? 'badge-hadir' : 'badge-absen';
-        const badgeIcon = item.attendance === 'Hadir' ? 'fa-check-circle' : 'fa-info-circle';
+        let badgeHtml = '';
+        if (item.attendance === 'Hadir' || item.attendance === 'Tidak Hadir') {
+          const badgeClass = item.attendance === 'Hadir' ? 'badge-hadir' : 'badge-absen';
+          const badgeIcon = item.attendance === 'Hadir' ? 'fa-check-circle' : 'fa-times-circle';
+          badgeHtml = `<span class="wish-badge ${badgeClass}"><i class="fas ${badgeIcon}"></i> ${item.attendance}</span>`;
+        }
 
         div.innerHTML = `
           <div class="wish-avatar">${initial}</div>
           <div class="wish-content">
-            <h4>${escapeHTML(item.name)} <span class="wish-badge ${badgeClass}"><i class="fas ${badgeIcon}"></i> ${attendanceText}</span></h4>
+            <h4>${escapeHTML(item.name)} ${badgeHtml}</h4>
             ${dateStr ? `<p class="wish-date"><i class="far fa-clock"></i> ${dateStr}</p>` : ''}
             <p class="wish-text">"${escapeHTML(item.message)}"</p>
           </div>
@@ -350,8 +364,10 @@
 
   function openMapModal() {
     const mapImg = document.getElementById('actual-map-img');
-    if (mapImg) {
-      document.getElementById('map-modal').style.display = "block";
+    const modalImg = document.getElementById('img01');
+    if (mapImg && modalImg) {
+      modalImg.src = mapImg.src;
+      document.getElementById('map-modal').style.display = "flex";
     }
   }
 
@@ -369,5 +385,12 @@
         '"': '&quot;'
       }[tag] || tag)
     );
+  }
+
+  // Close modals when clicking outside
+  window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+      event.target.style.display = "none";
+    }
   }
 </script>

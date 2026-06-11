@@ -30,6 +30,7 @@
 
   function toggleSidebar() {
     document.getElementById('sidebar').classList.toggle('show');
+    document.getElementById('sidebar-overlay').classList.toggle('show');
   }
 
   function compressImage(file, maxWidth, maxHeight, quality, callback) {
@@ -109,7 +110,8 @@
             <input type="file" class="bank-icon-file" accept="image/*" onchange="handleBankIconUpload(this)">
             <input type="hidden" class="bank-icon-base64" value="${bank.iconBase64 || bank.iconUrl || ''}">
             <input type="hidden" class="bank-icon-mime" value="${bank.iconMime || ''}">
-            ${bank.iconUrl ? `<img src="${bank.iconUrl}" style="height:30px; margin-top:5px; border-radius:5px;">` : ''}
+            <input type="hidden" class="bank-existing-url" value="${bank.iconUrl || ''}">
+            ${bank.iconUrl ? `<img src="${bank.iconUrl}" style="height:30px; margin-top:5px; border-radius:5px;"> <span style="font-size:0.8rem; color:green;"><i class="fas fa-check-circle"></i> Ter-upload</span>` : `<span style="font-size:0.8rem; color:#777;">Belum ada ikon khusus</span>`}
           </div>
         </div>
       `;
@@ -118,11 +120,54 @@
 
   function handleBankIconUpload(input) {
     if (input.files.length > 0) {
-      compressImage(input.files[0], 200, 200, 0.8, function(dataUrl) {
-        const item = input.closest('.bank-item');
-        item.querySelector('.bank-icon-base64').value = dataUrl;
-        item.querySelector('.bank-icon-mime').value = input.files[0].type;
-      });
+      const item = input.closest('.bank-item');
+      const existingUrl = item.querySelector('.bank-existing-url').value;
+      
+      const processUpload = () => {
+        compressImage(input.files[0], 200, 200, 0.8, function(dataUrl) {
+          item.querySelector('.bank-icon-base64').value = dataUrl;
+          item.querySelector('.bank-icon-mime').value = input.files[0].type;
+        });
+      };
+
+      if (existingUrl) {
+        Swal.fire({
+          title: 'Timpa Ikon Rekening?',
+          text: 'Sudah ada ikon terunggah. Ingin menimpanya?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, Timpa',
+          cancelButtonText: 'Batal'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            processUpload();
+          } else {
+            input.value = ''; // clear input
+          }
+        });
+      } else {
+        processUpload();
+      }
+    }
+  }
+
+  function handleMapUpload(input) {
+    if (input.files.length > 0) {
+      const mapStatus = document.getElementById('map-existing-status');
+      if (mapStatus.getAttribute('data-exists') === 'true') {
+        Swal.fire({
+          title: 'Timpa Denah Lokasi?',
+          text: 'Sudah ada file denah yang tersimpan. Ingin menimpanya?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, Timpa',
+          cancelButtonText: 'Batal'
+        }).then((result) => {
+          if (!result.isConfirmed) {
+            input.value = ''; // clear input
+          }
+        });
+      }
     }
   }
 
@@ -164,6 +209,15 @@
     document.getElementById('MusicUrl').value = data.MusicUrl || '';
     document.getElementById('MapsLink').value = data.MapsLink || '';
     
+    const mapStatus = document.getElementById('map-existing-status');
+    if (data.MapImage) {
+      mapStatus.innerHTML = `<i class="fas fa-check-circle" style="color:green;"></i> File sudah ter-upload.`;
+      mapStatus.setAttribute('data-exists', 'true');
+    } else {
+      mapStatus.innerHTML = `Belum ada file ter-upload.`;
+      mapStatus.setAttribute('data-exists', 'false');
+    }
+
     if (data.BankAccounts) {
       try { bankAccountsList = JSON.parse(data.BankAccounts); } catch(e) { bankAccountsList = []; }
     } else {

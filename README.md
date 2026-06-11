@@ -80,6 +80,12 @@ Aplikasi ini dilengkapi dengan Panel Admin eksklusif dan dinamis (Dashboard) yan
 *Dikembangkan untuk memberikan solusi E-Invitation premium dan bebas biaya server bulanan!*
 ## ?? Changelog
 
+### v7.0.0 (Sidebar Revamp & Calendar Integration)
+- **Modern Admin Sidebar**: Merombak gaya desain *Sidebar* Admin dari skema gelap/kaku menjadi gaya terang nan premium. Dilengkapi dengan gradasi penanda menu aktif dan *overlay backdrop* interaktif untuk responsibilitas *Mobile*.
+- **API Error Handling**: Memperbaiki kelemahan *session* dan *Error: Unauthorized* yang bocor pada pemanggilan asinkron (*Google Apps Script*) ketika sedang mengunggah gambar amplop/media.
+- **Folder Spesifik Ikon**: Semua *Custom Icon Bank/E-Wallet* kini terisolasi rapi pada Google Drive di lokasi: `Undangan Pernikahan > icon_amplop`.
+- **Fitur "Simpan ke Kalender"**: Menambahkan tombol interaktif khusus di seksi "Waktu & Tempat" pada *Index*. Fitur ini merakit URL dinamis menggunakan *timestamps* untuk secara instan membuat jadwal pengingat (*event reminder*) acara pernikahan langsung di *Google Calendar* tamu undangan.
+
 ### v6.0.0
 - **Database Auto-Patching**: Memperbaiki fungsi saveSettings pada Code.gs. Sistem kini memindai struktur JSON (*dictionary keys*); apabila ia mendeteksi variabel pengaturan yang belum terekam di dalam file Google Spreadsheet (contohnya BankAccounts), fungsi ini tak lagi mengabaikannya melainkan secara agresif membuat baris baru (*appendRow*), memastikan kompatibilitas penuh bagi pengguna basis data lama.
 - **Hero & Greeting Section Enhancement**: Menginjeksi kaligrafi Bismillah dan kutipan romantis berbayang yang ditunjang oleh animasi *CSS Keyframes* pada area Kata Sambutan (*Greeting*), memberikan kesan religius yang mewah.

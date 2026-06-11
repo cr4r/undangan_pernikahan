@@ -18,6 +18,7 @@
 
   <div class="layout" style="display:none; width:100%;" id="admin-layout">
     
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
@@ -94,7 +95,8 @@
                 </div>
                 <div class="file-upload-wrapper">
                   <label>Upload Denah Lokasi Baru (Opsional)</label>
-                  <input type="file" id="MapImageFile" accept="image/*">
+                  <input type="file" id="MapImageFile" accept="image/*" onchange="handleMapUpload(this)">
+                  <span id="map-existing-status" style="display:block; margin-top:5px; font-size:0.85rem; color:#555;"></span>
                 </div>
                 <div class="floating-group" style="margin-top: 10px;">
                   <input type="url" id="MusicUrl" class="floating-input" placeholder=" " required>

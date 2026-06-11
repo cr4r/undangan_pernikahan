@@ -9,7 +9,9 @@
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;600&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <?!= include('Style'); ?>
 </head>
 
@@ -47,7 +49,7 @@
   <!-- Main Content (Hidden Initially) -->
   <main id="main-content" style="display: none;">
     <!-- Greeting Section -->
-    <section class="section greeting text-center" id="greeting">
+    <section class="section greeting text-center" id="greeting" data-aos="fade-up" data-aos-duration="1000">
       <div class="container">
         <h2 class="section-title">Assalamu'alaikum Warahmatullahi Wabarakatuh</h2>
         <p class="greeting-text" id="greeting-text">
@@ -81,7 +83,7 @@
     </section>
 
     <!-- Event Details & Countdown -->
-    <section class="section event-details" id="events">
+    <section class="section event-details" id="events" data-aos="fade-up">
       <div class="container text-center">
         <h2 class="section-title">Waktu & Tempat</h2>
 
@@ -126,13 +128,13 @@
     </section>
 
     <!-- Map Modal -->
-    <div id="map-modal" class="modal">
-      <span class="modal-close" onclick="closeMapModal()">&times;</span>
-      <img class="modal-content" id="modal-map-img">
+    <div id="map-modal" class="modal" style="padding:0;">
+      <span class="modal-close" onclick="closeMapModal()" style="color:white; text-shadow:0 2px 4px rgba(0,0,0,0.5);">&times;</span>
+      <img class="map-modal-image" id="img01">
     </div>
 
     <!-- Gallery Section -->
-    <section class="section gallery-section" id="gallery">
+    <section class="section gallery-section" id="gallery" data-aos="fade-up">
       <div class="container text-center">
         <h2 class="section-title">Galeri Kami</h2>
         <div class="gallery-grid" id="gallery-grid">
@@ -142,7 +144,7 @@
     </section>
 
     <!-- Digital Envelope (Gift) Section -->
-    <section class="section gift-section" id="gift">
+    <section class="section gift-section" id="gift" data-aos="fade-up">
       <div class="container text-center">
         <h2 class="section-title">Amplop Digital</h2>
         <p style="margin-bottom: 2rem;">Bagi keluarga dan sahabat yang ingin memberikan tanda kasih untuk kami, dapat
@@ -156,7 +158,8 @@
         <div id="gift-modal" class="modal">
           <span class="modal-close" onclick="closeGiftModal()">&times;</span>
           <div class="modal-content gift-modal-content">
-            <div class="gift-icon-modal" id="modal-gift-icon-container"><i id="modal-gift-icon" class="fas fa-credit-card"></i></div>
+            <div class="gift-icon-modal" id="modal-gift-icon-container"><i id="modal-gift-icon"
+                class="fas fa-credit-card"></i></div>
             <h3 id="modal-gift-bank">Bank</h3>
             <p class="account-number" id="modal-gift-account">-</p>
             <p class="account-holder">a.n <span id="modal-gift-holder">-</span></p>
@@ -169,7 +172,7 @@
     </section>
 
     <!-- RSVP Section -->
-    <section class="section rsvp-section" id="rsvp">
+    <section class="section rsvp-section" id="rsvp" data-aos="fade-up">
       <div class="container">
         <h2 class="section-title text-center" style="display:block;">Kata Ucapan</h2>
         <div class="rsvp-wrapper">
@@ -202,7 +205,10 @@
               style="margin-bottom: 1rem; color: var(--primary-color); border-bottom: 2px solid var(--secondary-color); padding-bottom: 10px;">
               Ucapan dari Teman</h3>
             <div id="wishes-list" class="wishes-scroll-area">
-              <p>Memuat ucapan...</p>
+              <div class="text-center" style="padding: 20px;">
+                <i class="fas fa-spinner fa-spin" style="color: var(--secondary-color); font-size: 2rem;"></i>
+                <p style="margin-top:15px; color:#777; font-size:0.9rem;">Menarik data ucapan...</p>
+              </div>
             </div>
           </div>
         </div>

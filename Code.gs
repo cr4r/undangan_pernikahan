@@ -121,7 +121,7 @@ function saveSettings(settings, token) {
       var banks = JSON.parse(settings.BankAccounts);
       for (var j = 0; j < banks.length; j++) {
         if (banks[j].iconBase64 && banks[j].iconBase64.startsWith('data:image')) {
-          banks[j].iconUrl = uploadFileToDrive(banks[j].iconBase64, 'icon_bank_' + Utilities.getUuid().substring(0,8) + '.png', banks[j].iconMime || 'image/png', 'Undangan Pernikahan');
+          banks[j].iconUrl = uploadFileToDrive(banks[j].iconBase64, 'icon_bank_' + Utilities.getUuid().substring(0,8) + '.png', banks[j].iconMime || 'image/png', 'icon_amplop', 'Undangan Pernikahan');
         }
         delete banks[j].iconBase64;
         delete banks[j].iconMime;
