@@ -1,20 +1,80 @@
 function doGet(e) {
+  var action = e.parameter.action;
+  
+  // Return API response if requested via GET
+  if (action) {
+    return handleApiRequest(e.parameter);
+  }
+
   var page = e.parameter.page;
   var template;
   if (page === 'admin') {
-    template = HtmlService.createTemplateFromFile('Admin');
+    template = HtmlService.createTemplateFromFile('GAPS/Admin');
   } else if (page === 'login') {
-    template = HtmlService.createTemplateFromFile('Login');
+    template = HtmlService.createTemplateFromFile('GAPS/Login');
   } else {
-    template = HtmlService.createTemplateFromFile('Index');
+    template = HtmlService.createTemplateFromFile('GAPS/Index');
   }
   return template.evaluate()
     .setTitle('Undangan Pernikahan')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
+function doPost(e) {
+  try {
+    var postData = JSON.parse(e.postData.contents);
+    return handleApiRequest(postData);
+  } catch(error) {
+    return ContentService.createTextOutput(JSON.stringify({status: 'error', message: error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function handleApiRequest(data) {
+  try {
+    var action = data.action;
+    var responseData = {};
+    
+    if (action === 'getPublicData') {
+      responseData = getPublicData();
+    } else if (action === 'submitRsvp') {
+      var res = submitRsvp(data.name, data.attendance, data.guests, data.message);
+      responseData = {result: res};
+    } else if (action === 'getSettings') {
+      responseData = getSettings(data.token);
+    } else if (action === 'getGallery') {
+      responseData = getGallery();
+    } else if (action === 'getRSVPs') {
+      responseData = getRSVPs(data.token);
+    } else if (action === 'login') {
+      var res = checkLogin(data.password);
+      responseData = {result: res};
+    } else if (action === 'saveSettings') {
+      var res = saveSettings(data.settings, data.token);
+      responseData = {result: res};
+    } else if (action === 'uploadMedia') {
+      var res = uploadMedia(data.base64Data, data.fileName, data.mimeType, data.token);
+      responseData = {result: res};
+    } else if (action === 'deleteMedia') {
+      var res = deleteMedia(data.id, data.token);
+      responseData = {result: res};
+    } else if (action === 'deleteRsvp') {
+      var res = deleteRsvp(data.rowNum, data.token);
+      responseData = {result: res};
+    } else {
+      throw new Error('Action not found');
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({status: 'success', data: responseData}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(error) {
+    return ContentService.createTextOutput(JSON.stringify({status: 'error', message: error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
 function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+  return HtmlService.createHtmlOutputFromFile('GAPS/' + filename).getContent();
 }
 
 function getScriptUrl() {
