@@ -3,6 +3,10 @@ const GAS_URL = "ISI_URL_WEB_APP_GAS_ANDA_DISINI";
 function apiRequest(action, data, successCallback, errorCallback) {
   fetch(GAS_URL, {
     method: 'POST',
+    redirect: 'follow',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8'
+    },
     body: JSON.stringify(Object.assign({ action: action }, data))
   })
   .then(res => res.json())

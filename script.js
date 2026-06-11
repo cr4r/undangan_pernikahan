@@ -3,6 +3,10 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbyw4NObDQh8iFnObezNFHw8
 function apiRequest(action, data, successCallback, errorCallback) {
   fetch(GAS_URL, {
     method: 'POST',
+    redirect: 'follow',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8'
+    },
     body: JSON.stringify(Object.assign({ action: action }, data))
   })
     .then(res => res.json())

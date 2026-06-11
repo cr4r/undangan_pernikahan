@@ -80,6 +80,10 @@ Aplikasi ini dilengkapi dengan Panel Admin eksklusif dan dinamis (Dashboard) yan
 *Dikembangkan untuk memberikan solusi E-Invitation premium dan bebas biaya server bulanan!*
 ## ?? Changelog
 
+### v8.0.0 (Major Architecture Shift - Github Pages Ready)
+- **Architecture (Hybrid Frontend)**: Merombak arsitektur aplikasi menjadi dua mode deployment: Static Frontend untuk **GitHub Pages** dan Native Frontend untuk **Google Apps Script**. File-file HTML/CSS/JS diakar proyek sekarang 100% murni dan independen, sedangkan file *template* spesifik GAS dipindahkan ke dalam folder `GAPS/`.
+- **Backend (REST API)**: Memperbarui logika `Code.gs` dengan dukungan layanan API via metode `doPost(e)`. Google Apps Script kini berperan sebagai *headless* API (didukung CORS) untuk berinteraksi (*fetch*) secara mulus dengan antarmuka yang di-*hosting* di luar server Google.
+
 ### v7.0.0 (Sidebar Revamp & Calendar Integration)
 - **Modern Admin Sidebar**: Merombak gaya desain *Sidebar* Admin dari skema gelap/kaku menjadi gaya terang nan premium. Dilengkapi dengan gradasi penanda menu aktif dan *overlay backdrop* interaktif untuk responsibilitas *Mobile*.
 - **API Error Handling**: Memperbaiki kelemahan *session* dan *Error: Unauthorized* yang bocor pada pemanggilan asinkron (*Google Apps Script*) ketika sedang mengunggah gambar amplop/media.
