@@ -1,454 +1,454 @@
-const GAS_URL = "ISI_URL_WEB_APP_GAS_ANDA_DISINI";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyw4NObDQh8iFnObezNFHw8ExtVXP8qIcR9HyhQbOHXPefz98BYhQga85SYpvYYGUEO/exec";
 
 function apiRequest(action, data, successCallback, errorCallback) {
   fetch(GAS_URL, {
     method: 'POST',
     body: JSON.stringify(Object.assign({ action: action }, data))
   })
-  .then(res => res.json())
-  .then(res => {
-    if (res.status === 'success') {
-      if(successCallback) successCallback(res.data);
-    } else {
-      console.error(res.message);
-      if(errorCallback) errorCallback(res.message);
-    }
-  })
-  .catch(err => {
-    console.error(err);
-    if(errorCallback) errorCallback(err);
-  });
+    .then(res => res.json())
+    .then(res => {
+      if (res.status === 'success') {
+        if (successCallback) successCallback(res.data);
+      } else {
+        console.error(res.message);
+        if (errorCallback) errorCallback(res.message);
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      if (errorCallback) errorCallback(err);
+    });
 }
 
 
-  let isPlaying = false;
-  let targetDate = new Date().getTime();
+let isPlaying = false;
+let targetDate = new Date().getTime();
 
-  const Toast = Swal.mixin({
-    toast: true,
-    position: "bottom",
-    showConfirmButton: false,
-    timer: 3000,
-    timerProgressBar: true,
-    didOpen: (toast) => {
-      toast.onmouseenter = Swal.stopTimer;
-      toast.onmouseleave = Swal.resumeTimer;
-    }
-  });
-
-  function showToast(message, type = 'success') {
-    Toast.fire({
-      icon: type,
-      title: message
-    });
+const Toast = Swal.mixin({
+  toast: true,
+  position: "bottom",
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+  didOpen: (toast) => {
+    toast.onmouseenter = Swal.stopTimer;
+    toast.onmouseleave = Swal.resumeTimer;
   }
+});
 
-  document.addEventListener('DOMContentLoaded', () => {
-    // Load data from Google Apps Script
-    apiRequest('getPublicData', {}, initPage);
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    // RSVP Attendance Toggle
-    document.getElementById('rsvp-attendance').addEventListener('change', function () {
-      const guestsGroup = document.getElementById('guests-group');
-      if (this.value === 'Hadir') {
-        guestsGroup.style.display = 'block';
-      } else {
-        guestsGroup.style.display = 'none';
-      }
-    });
-
-
-
+function showToast(message, type = 'success') {
+  Toast.fire({
+    icon: type,
+    title: message
   });
+}
 
-  // Carousel Logic
-  const carouselImages = [
-    'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80',
-    'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1920&q=80',
-    'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1920&q=80'
-  ];
-  let currentSlide = 0;
+document.addEventListener('DOMContentLoaded', () => {
+  // Load data from Google Apps Script
+  apiRequest('getPublicData', {}, initPage);
+  document.getElementById('year').textContent = new Date().getFullYear();
 
-  function initCarousel() {
-    const container = document.getElementById('hero-carousel');
-    carouselImages.forEach((src, idx) => {
-      const div = document.createElement('div');
-      div.className = 'carousel-slide' + (idx === 0 ? ' active' : '');
-      div.style.backgroundImage = `url(${src})`;
-      container.appendChild(div);
-    });
-
-    setInterval(() => {
-      const slides = document.querySelectorAll('.carousel-slide');
-      slides[currentSlide].classList.remove('active');
-      currentSlide = (currentSlide + 1) % slides.length;
-      slides[currentSlide].classList.add('active');
-    }, 5000);
-  }
-
-  function initPage(data) {
-    const s = data.settings;
-
-    // Populate Names
-    document.getElementById('bride-name-hero').textContent = s.BrideName;
-    document.getElementById('groom-name-hero').textContent = s.GroomName;
-    document.getElementById('bride-name').textContent = s.BrideName;
-    document.getElementById('groom-name').textContent = s.GroomName;
-    document.getElementById('bride-desc').textContent = s.BrideDesc || 'Putri dari ...';
-    document.getElementById('groom-desc').textContent = s.GroomDesc || 'Putra dari ...';
-    document.getElementById('footer-names').textContent = s.BrideName + ' & ' + s.GroomName;
-
-    // Populate Dates
-    const akad = new Date(s.AkadDate);
-    const resepsi = new Date(s.ResepsiDate);
-
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    document.getElementById('hero-date').textContent = resepsi.toLocaleDateString('id-ID', options);
-    document.getElementById('akad-date').textContent = akad.toLocaleDateString('id-ID', options);
-    document.getElementById('akad-time').textContent = akad.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB - Selesai';
-    document.getElementById('resepsi-date').textContent = resepsi.toLocaleDateString('id-ID', options);
-    document.getElementById('resepsi-time').textContent = resepsi.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB - Selesai';
-
-    targetDate = resepsi.getTime();
-    startCountdown();
-
-    document.getElementById('greeting-text').textContent = s.Greeting;
-    document.getElementById('maps-link').href = s.MapsLink;
-
-    // Map Image
-    const mapContainer = document.getElementById('map-container');
-    if (s.MapImage && s.MapImage.trim() !== '') {
-      mapContainer.innerHTML = `<img src="${s.MapImage}" alt="Denah Lokasi" id="actual-map-img" style="width:100%; border-radius:10px;">`;
+  // RSVP Attendance Toggle
+  document.getElementById('rsvp-attendance').addEventListener('change', function () {
+    const guestsGroup = document.getElementById('guests-group');
+    if (this.value === 'Hadir') {
+      guestsGroup.style.display = 'block';
     } else {
-      mapContainer.innerHTML = `<p style="padding-top:100px;">Klik tombol di bawah untuk melihat peta</p>`;
+      guestsGroup.style.display = 'none';
     }
+  });
 
-    // Bank / Gift Settings
-    if (s.BankAccounts) {
-      try {
-        const banks = JSON.parse(s.BankAccounts);
-        const listContainer = document.getElementById('gift-list');
-        listContainer.innerHTML = '';
 
-        // Define global banks array for modal access
-        window.giftBanks = banks;
 
-        banks.forEach((b, idx) => {
-          let icon = 'fa-credit-card';
-          let bName = b.bank.toLowerCase();
-          if (bName.includes('gopay') || bName.includes('ovo') || bName.includes('dana') || bName.includes('shopee') || bName.includes('wallet')) {
-            icon = 'fa-wallet';
-          } else if (bName.includes('paypal')) {
-            icon = 'fa-paypal';
-          }
-          let iconHtml = `<i class="fas ${icon}"></i>`;
-          if (b.iconUrl) {
-            iconHtml = `<img src="${b.iconUrl}" alt="${bName}" style="width:100%; height:100%; object-fit:contain;">`;
-          }
+});
 
-          listContainer.innerHTML += `
+// Carousel Logic
+const carouselImages = [
+  'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80',
+  'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1920&q=80',
+  'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1920&q=80'
+];
+let currentSlide = 0;
+
+function initCarousel() {
+  const container = document.getElementById('hero-carousel');
+  carouselImages.forEach((src, idx) => {
+    const div = document.createElement('div');
+    div.className = 'carousel-slide' + (idx === 0 ? ' active' : '');
+    div.style.backgroundImage = `url(${src})`;
+    container.appendChild(div);
+  });
+
+  setInterval(() => {
+    const slides = document.querySelectorAll('.carousel-slide');
+    slides[currentSlide].classList.remove('active');
+    currentSlide = (currentSlide + 1) % slides.length;
+    slides[currentSlide].classList.add('active');
+  }, 5000);
+}
+
+function initPage(data) {
+  const s = data.settings;
+
+  // Populate Names
+  document.getElementById('bride-name-hero').textContent = s.BrideName;
+  document.getElementById('groom-name-hero').textContent = s.GroomName;
+  document.getElementById('bride-name').textContent = s.BrideName;
+  document.getElementById('groom-name').textContent = s.GroomName;
+  document.getElementById('bride-desc').textContent = s.BrideDesc || 'Putri dari ...';
+  document.getElementById('groom-desc').textContent = s.GroomDesc || 'Putra dari ...';
+  document.getElementById('footer-names').textContent = s.BrideName + ' & ' + s.GroomName;
+
+  // Populate Dates
+  const akad = new Date(s.AkadDate);
+  const resepsi = new Date(s.ResepsiDate);
+
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  document.getElementById('hero-date').textContent = resepsi.toLocaleDateString('id-ID', options);
+  document.getElementById('akad-date').textContent = akad.toLocaleDateString('id-ID', options);
+  document.getElementById('akad-time').textContent = akad.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB - Selesai';
+  document.getElementById('resepsi-date').textContent = resepsi.toLocaleDateString('id-ID', options);
+  document.getElementById('resepsi-time').textContent = resepsi.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB - Selesai';
+
+  targetDate = resepsi.getTime();
+  startCountdown();
+
+  document.getElementById('greeting-text').textContent = s.Greeting;
+  document.getElementById('maps-link').href = s.MapsLink;
+
+  // Map Image
+  const mapContainer = document.getElementById('map-container');
+  if (s.MapImage && s.MapImage.trim() !== '') {
+    mapContainer.innerHTML = `<img src="${s.MapImage}" alt="Denah Lokasi" id="actual-map-img" style="width:100%; border-radius:10px;">`;
+  } else {
+    mapContainer.innerHTML = `<p style="padding-top:100px;">Klik tombol di bawah untuk melihat peta</p>`;
+  }
+
+  // Bank / Gift Settings
+  if (s.BankAccounts) {
+    try {
+      const banks = JSON.parse(s.BankAccounts);
+      const listContainer = document.getElementById('gift-list');
+      listContainer.innerHTML = '';
+
+      // Define global banks array for modal access
+      window.giftBanks = banks;
+
+      banks.forEach((b, idx) => {
+        let icon = 'fa-credit-card';
+        let bName = b.bank.toLowerCase();
+        if (bName.includes('gopay') || bName.includes('ovo') || bName.includes('dana') || bName.includes('shopee') || bName.includes('wallet')) {
+          icon = 'fa-wallet';
+        } else if (bName.includes('paypal')) {
+          icon = 'fa-paypal';
+        }
+        let iconHtml = `<i class="fas ${icon}"></i>`;
+        if (b.iconUrl) {
+          iconHtml = `<img src="${b.iconUrl}" alt="${bName}" style="width:100%; height:100%; object-fit:contain;">`;
+        }
+
+        listContainer.innerHTML += `
             <div class="gift-thumbnail" onclick="openGiftModal(${idx}, '${icon}')">
               <div class="gift-icon-thumb" style="${b.iconUrl ? 'width:50px; height:50px; display:flex; align-items:center; justify-content:center;' : ''}">${iconHtml}</div>
               <h4>${escapeHTML(b.bank)}</h4>
             </div>
           `;
-        });
-      } catch (e) {
-        console.error("Gagal memproses data bank", e);
-      }
-    }
-
-    // Audio
-    document.getElementById('bg-music').src = s.MusicUrl;
-
-    // Gallery
-    const galleryGrid = document.getElementById('gallery-grid');
-    if (data.gallery && data.gallery.length > 0) {
-      data.gallery.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'gallery-item';
-        if (item.type === 'photo') {
-          div.innerHTML = `<img src="${item.url}" alt="Gallery Image">`;
-        } else {
-          div.innerHTML = `<video src="${item.url}" controls></video>`;
-        }
-        galleryGrid.appendChild(div);
       });
-    } else {
-      galleryGrid.innerHTML = '<p>Galeri belum tersedia.</p>';
-    }
-
-    // RSVPs
-    const wishesList = document.getElementById('wishes-list');
-    if (data.rsvps && data.rsvps.length > 0) {
-      wishesList.innerHTML = '';
-      data.rsvps.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'wish-card modern-wish';
-
-        let dateStr = '';
-        if (item.timestamp) {
-          const dt = new Date(item.timestamp);
-          dateStr = dt.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-        }
-
-        const initial = item.name ? item.name.charAt(0).toUpperCase() : '?';
-        let badgeHtml = '';
-        if (item.attendance === 'Hadir' || item.attendance === 'Tidak Hadir') {
-          const badgeClass = item.attendance === 'Hadir' ? 'badge-hadir' : 'badge-absen';
-          const badgeIcon = item.attendance === 'Hadir' ? 'fa-check-circle' : 'fa-times-circle';
-          badgeHtml = `<span class="wish-badge ${badgeClass}"><i class="fas ${badgeIcon}"></i> ${item.attendance}</span>`;
-        }
-
-        div.innerHTML = `
-          <div class="wish-avatar">${initial}</div>
-          <div class="wish-content">
-            <h4>${escapeHTML(item.name)} ${badgeHtml}</h4>
-            ${dateStr ? `<p class="wish-date"><i class="far fa-clock"></i> ${dateStr}</p>` : ''}
-            <p class="wish-text">"${escapeHTML(item.message)}"</p>
-          </div>
-        `;
-        wishesList.appendChild(div);
-      });
-    } else {
-      wishesList.innerHTML = '<p class="text-center" style="color:#777; font-style:italic;">Jadilah yang pertama memberikan ucapan.</p>';
-    }
-
-    // Initialize Carousel
-    initCarousel();
-
-    // Hide loader
-    document.getElementById('loader').style.display = 'none';
-  }
-
-  function openInvitation() {
-    document.getElementById('home').style.display = 'none';
-    document.getElementById('main-content').style.display = 'block';
-    window.scrollTo(0, 0);
-
-    // Play music
-    const audio = document.getElementById('bg-music');
-    audio.play().then(() => {
-      document.getElementById('audio-btn').style.display = 'flex';
-      document.getElementById('auto-scroll-btn').style.display = 'flex';
-    }).catch(err => console.log('Audio play failed', err));
-
-    // Init AOS Animations
-    setTimeout(() => {
-      AOS.init({
-        duration: 1000,
-        once: true,
-        offset: 100
-      });
-    }, 100);
-  }
-
-  function toggleAudio() {
-    const audio = document.getElementById('bg-music');
-    const btn = document.getElementById('audio-btn');
-    if (isPlaying) {
-      audio.pause();
-      btn.innerHTML = '<i class="fas fa-music"></i>';
-    } else {
-      audio.play();
-      btn.innerHTML = '<i class="fas fa-pause"></i>';
-    }
-    isPlaying = !isPlaying;
-  }
-
-  // Auto Scroll Feature
-  let autoScrollInterval = null;
-  let isAutoScrolling = false;
-
-  function toggleAutoScroll() {
-    if (isAutoScrolling) stopAutoScroll();
-    else startAutoScroll();
-  }
-
-  function startAutoScroll() {
-    isAutoScrolling = true;
-    document.getElementById('auto-scroll-btn').innerHTML = '<i class="fas fa-pause"></i>';
-    autoScrollInterval = setInterval(() => {
-      window.scrollBy(0, 1);
-      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 2) {
-        stopAutoScroll();
-      }
-    }, 25);
-  }
-
-  function stopAutoScroll() {
-    isAutoScrolling = false;
-    document.getElementById('auto-scroll-btn').innerHTML = '<i class="fas fa-chevron-down"></i>';
-    if (autoScrollInterval) {
-      clearInterval(autoScrollInterval);
-      autoScrollInterval = null;
+    } catch (e) {
+      console.error("Gagal memproses data bank", e);
     }
   }
 
-  // Pause auto-scroll on manual interaction
-  window.addEventListener('wheel', () => { if (isAutoScrolling) stopAutoScroll(); }, { passive: true });
-  window.addEventListener('touchstart', () => { if (isAutoScrolling) stopAutoScroll(); }, { passive: true });
+  // Audio
+  document.getElementById('bg-music').src = s.MusicUrl;
 
-
-  function startCountdown() {
-    setInterval(() => {
-      const now = new Date().getTime();
-      const distance = targetDate - now;
-
-      if (distance < 0) {
-        document.getElementById('days').textContent = '00';
-        document.getElementById('hours').textContent = '00';
-        document.getElementById('mins').textContent = '00';
-        document.getElementById('secs').textContent = '00';
-        return;
-      }
-
-      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-      document.getElementById('days').textContent = days < 10 ? '0' + days : days;
-      document.getElementById('hours').textContent = hours < 10 ? '0' + hours : hours;
-      document.getElementById('mins').textContent = minutes < 10 ? '0' + minutes : minutes;
-      document.getElementById('secs').textContent = seconds < 10 ? '0' + seconds : seconds;
-    }, 1000);
-  }
-
-  function loadWishes() {
-    google.script.run.withSuccessHandler((data) => {
-      const list = document.getElementById('wishes-list');
-      list.innerHTML = '';
-      const rsvps = data.rsvps;
-      if (!rsvps || rsvps.length === 0) {
-        list.innerHTML = '<p class="text-center" style="color:#777; font-style:italic;">Jadilah yang pertama memberikan ucapan.</p>';
-        return;
-      }
-      rsvps.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'wish-card modern-wish';
-
-        let dateStr = '';
-        if (item.timestamp) {
-          const dt = new Date(item.timestamp);
-          dateStr = dt.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-        }
-
-        const initial = item.name ? item.name.charAt(0).toUpperCase() : '?';
-        let badgeHtml = '';
-        if (item.attendance === 'Hadir' || item.attendance === 'Tidak Hadir') {
-          const badgeClass = item.attendance === 'Hadir' ? 'badge-hadir' : 'badge-absen';
-          const badgeIcon = item.attendance === 'Hadir' ? 'fa-check-circle' : 'fa-times-circle';
-          badgeHtml = `<span class="wish-badge ${badgeClass}"><i class="fas ${badgeIcon}"></i> ${item.attendance}</span>`;
-        }
-
-        div.innerHTML = `
-          <div class="wish-avatar">${initial}</div>
-          <div class="wish-content">
-            <h4>${escapeHTML(item.name)} ${badgeHtml}</h4>
-            ${dateStr ? `<p class="wish-date"><i class="far fa-clock"></i> ${dateStr}</p>` : ''}
-            <p class="wish-text">"${escapeHTML(item.message)}"</p>
-          </div>
-        `;
-        list.appendChild(div);
-      });
-    }).getPublicData();
-  }
-
-  function submitRSVP(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btn-submit-rsvp');
-    btn.textContent = 'Mengirim...';
-    btn.disabled = true;
-
-    const data = {
-      name: document.getElementById('rsvp-name').value,
-      attendance: document.getElementById('rsvp-attendance').value,
-      guests: document.getElementById('rsvp-attendance').value === 'Hadir' ? document.getElementById('rsvp-guests').value : '0',
-      message: document.getElementById('rsvp-message').value
-    };
-
-    google.script.run.withSuccessHandler((res) => {
-      if (res.success) {
-        showToast('Terima kasih atas ucapan Anda!', 'success');
-        document.getElementById('rsvp-form').reset();
-        loadWishes();
+  // Gallery
+  const galleryGrid = document.getElementById('gallery-grid');
+  if (data.gallery && data.gallery.length > 0) {
+    data.gallery.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'gallery-item';
+      if (item.type === 'photo') {
+        div.innerHTML = `<img src="${item.url}" alt="Gallery Image">`;
       } else {
-        showToast('Terjadi kesalahan. Coba lagi.', 'error');
+        div.innerHTML = `<video src="${item.url}" controls></video>`;
       }
-      btn.textContent = 'Kirim Ucapan';
-      btn.disabled = false;
-    }).withFailureHandler((err) => {
-      showToast('Terjadi kesalahan. Coba lagi.', 'error');
-      btn.textContent = 'Kirim Ucapan';
-      btn.disabled = false;
-    }).saveRSVP(data);
-  }
-
-  function copyBankAccount(elementId) {
-    const acc = document.getElementById(elementId).textContent;
-    navigator.clipboard.writeText(acc).then(() => {
-      showToast('Nomor Rekening Berhasil Disalin!', 'success');
-    }).catch(err => {
-      showToast('Gagal menyalin rekening.', 'error');
+      galleryGrid.appendChild(div);
     });
+  } else {
+    galleryGrid.innerHTML = '<p>Galeri belum tersedia.</p>';
   }
 
-  function openGiftModal(idx, iconClass) {
-    if (!window.giftBanks || !window.giftBanks[idx]) return;
-    const b = window.giftBanks[idx];
+  // RSVPs
+  const wishesList = document.getElementById('wishes-list');
+  if (data.rsvps && data.rsvps.length > 0) {
+    wishesList.innerHTML = '';
+    data.rsvps.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'wish-card modern-wish';
 
-    const iconContainer = document.getElementById('modal-gift-icon-container');
-    if (b.iconUrl) {
-      iconContainer.innerHTML = `<img src="${b.iconUrl}" alt="${b.bank}" style="max-height:60px; object-fit:contain;">`;
+      let dateStr = '';
+      if (item.timestamp) {
+        const dt = new Date(item.timestamp);
+        dateStr = dt.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      }
+
+      const initial = item.name ? item.name.charAt(0).toUpperCase() : '?';
+      let badgeHtml = '';
+      if (item.attendance === 'Hadir' || item.attendance === 'Tidak Hadir') {
+        const badgeClass = item.attendance === 'Hadir' ? 'badge-hadir' : 'badge-absen';
+        const badgeIcon = item.attendance === 'Hadir' ? 'fa-check-circle' : 'fa-times-circle';
+        badgeHtml = `<span class="wish-badge ${badgeClass}"><i class="fas ${badgeIcon}"></i> ${item.attendance}</span>`;
+      }
+
+      div.innerHTML = `
+          <div class="wish-avatar">${initial}</div>
+          <div class="wish-content">
+            <h4>${escapeHTML(item.name)} ${badgeHtml}</h4>
+            ${dateStr ? `<p class="wish-date"><i class="far fa-clock"></i> ${dateStr}</p>` : ''}
+            <p class="wish-text">"${escapeHTML(item.message)}"</p>
+          </div>
+        `;
+      wishesList.appendChild(div);
+    });
+  } else {
+    wishesList.innerHTML = '<p class="text-center" style="color:#777; font-style:italic;">Jadilah yang pertama memberikan ucapan.</p>';
+  }
+
+  // Initialize Carousel
+  initCarousel();
+
+  // Hide loader
+  document.getElementById('loader').style.display = 'none';
+}
+
+function openInvitation() {
+  document.getElementById('home').style.display = 'none';
+  document.getElementById('main-content').style.display = 'block';
+  window.scrollTo(0, 0);
+
+  // Play music
+  const audio = document.getElementById('bg-music');
+  audio.play().then(() => {
+    document.getElementById('audio-btn').style.display = 'flex';
+    document.getElementById('auto-scroll-btn').style.display = 'flex';
+  }).catch(err => console.log('Audio play failed', err));
+
+  // Init AOS Animations
+  setTimeout(() => {
+    AOS.init({
+      duration: 1000,
+      once: true,
+      offset: 100
+    });
+  }, 100);
+}
+
+function toggleAudio() {
+  const audio = document.getElementById('bg-music');
+  const btn = document.getElementById('audio-btn');
+  if (isPlaying) {
+    audio.pause();
+    btn.innerHTML = '<i class="fas fa-music"></i>';
+  } else {
+    audio.play();
+    btn.innerHTML = '<i class="fas fa-pause"></i>';
+  }
+  isPlaying = !isPlaying;
+}
+
+// Auto Scroll Feature
+let autoScrollInterval = null;
+let isAutoScrolling = false;
+
+function toggleAutoScroll() {
+  if (isAutoScrolling) stopAutoScroll();
+  else startAutoScroll();
+}
+
+function startAutoScroll() {
+  isAutoScrolling = true;
+  document.getElementById('auto-scroll-btn').innerHTML = '<i class="fas fa-pause"></i>';
+  autoScrollInterval = setInterval(() => {
+    window.scrollBy(0, 1);
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 2) {
+      stopAutoScroll();
+    }
+  }, 25);
+}
+
+function stopAutoScroll() {
+  isAutoScrolling = false;
+  document.getElementById('auto-scroll-btn').innerHTML = '<i class="fas fa-chevron-down"></i>';
+  if (autoScrollInterval) {
+    clearInterval(autoScrollInterval);
+    autoScrollInterval = null;
+  }
+}
+
+// Pause auto-scroll on manual interaction
+window.addEventListener('wheel', () => { if (isAutoScrolling) stopAutoScroll(); }, { passive: true });
+window.addEventListener('touchstart', () => { if (isAutoScrolling) stopAutoScroll(); }, { passive: true });
+
+
+function startCountdown() {
+  setInterval(() => {
+    const now = new Date().getTime();
+    const distance = targetDate - now;
+
+    if (distance < 0) {
+      document.getElementById('days').textContent = '00';
+      document.getElementById('hours').textContent = '00';
+      document.getElementById('mins').textContent = '00';
+      document.getElementById('secs').textContent = '00';
+      return;
+    }
+
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    document.getElementById('days').textContent = days < 10 ? '0' + days : days;
+    document.getElementById('hours').textContent = hours < 10 ? '0' + hours : hours;
+    document.getElementById('mins').textContent = minutes < 10 ? '0' + minutes : minutes;
+    document.getElementById('secs').textContent = seconds < 10 ? '0' + seconds : seconds;
+  }, 1000);
+}
+
+function loadWishes() {
+  google.script.run.withSuccessHandler((data) => {
+    const list = document.getElementById('wishes-list');
+    list.innerHTML = '';
+    const rsvps = data.rsvps;
+    if (!rsvps || rsvps.length === 0) {
+      list.innerHTML = '<p class="text-center" style="color:#777; font-style:italic;">Jadilah yang pertama memberikan ucapan.</p>';
+      return;
+    }
+    rsvps.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'wish-card modern-wish';
+
+      let dateStr = '';
+      if (item.timestamp) {
+        const dt = new Date(item.timestamp);
+        dateStr = dt.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      }
+
+      const initial = item.name ? item.name.charAt(0).toUpperCase() : '?';
+      let badgeHtml = '';
+      if (item.attendance === 'Hadir' || item.attendance === 'Tidak Hadir') {
+        const badgeClass = item.attendance === 'Hadir' ? 'badge-hadir' : 'badge-absen';
+        const badgeIcon = item.attendance === 'Hadir' ? 'fa-check-circle' : 'fa-times-circle';
+        badgeHtml = `<span class="wish-badge ${badgeClass}"><i class="fas ${badgeIcon}"></i> ${item.attendance}</span>`;
+      }
+
+      div.innerHTML = `
+          <div class="wish-avatar">${initial}</div>
+          <div class="wish-content">
+            <h4>${escapeHTML(item.name)} ${badgeHtml}</h4>
+            ${dateStr ? `<p class="wish-date"><i class="far fa-clock"></i> ${dateStr}</p>` : ''}
+            <p class="wish-text">"${escapeHTML(item.message)}"</p>
+          </div>
+        `;
+      list.appendChild(div);
+    });
+  }).getPublicData();
+}
+
+function submitRSVP(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-submit-rsvp');
+  btn.textContent = 'Mengirim...';
+  btn.disabled = true;
+
+  const data = {
+    name: document.getElementById('rsvp-name').value,
+    attendance: document.getElementById('rsvp-attendance').value,
+    guests: document.getElementById('rsvp-attendance').value === 'Hadir' ? document.getElementById('rsvp-guests').value : '0',
+    message: document.getElementById('rsvp-message').value
+  };
+
+  google.script.run.withSuccessHandler((res) => {
+    if (res.success) {
+      showToast('Terima kasih atas ucapan Anda!', 'success');
+      document.getElementById('rsvp-form').reset();
+      loadWishes();
     } else {
-      iconContainer.innerHTML = `<i id="modal-gift-icon" class="fas ${iconClass}"></i>`;
+      showToast('Terjadi kesalahan. Coba lagi.', 'error');
     }
+    btn.textContent = 'Kirim Ucapan';
+    btn.disabled = false;
+  }).withFailureHandler((err) => {
+    showToast('Terjadi kesalahan. Coba lagi.', 'error');
+    btn.textContent = 'Kirim Ucapan';
+    btn.disabled = false;
+  }).saveRSVP(data);
+}
 
-    document.getElementById('modal-gift-bank').textContent = b.bank;
-    document.getElementById('modal-gift-account').textContent = b.account;
-    document.getElementById('modal-gift-holder').textContent = b.name;
-    document.getElementById('btn-copy-modal').onclick = function () {
-      copyBankAccount('modal-gift-account');
-    };
-    document.getElementById('gift-modal').style.display = "flex";
+function copyBankAccount(elementId) {
+  const acc = document.getElementById(elementId).textContent;
+  navigator.clipboard.writeText(acc).then(() => {
+    showToast('Nomor Rekening Berhasil Disalin!', 'success');
+  }).catch(err => {
+    showToast('Gagal menyalin rekening.', 'error');
+  });
+}
+
+function openGiftModal(idx, iconClass) {
+  if (!window.giftBanks || !window.giftBanks[idx]) return;
+  const b = window.giftBanks[idx];
+
+  const iconContainer = document.getElementById('modal-gift-icon-container');
+  if (b.iconUrl) {
+    iconContainer.innerHTML = `<img src="${b.iconUrl}" alt="${b.bank}" style="max-height:60px; object-fit:contain;">`;
+  } else {
+    iconContainer.innerHTML = `<i id="modal-gift-icon" class="fas ${iconClass}"></i>`;
   }
 
-  function closeGiftModal() {
-    document.getElementById('gift-modal').style.display = "none";
-  }
+  document.getElementById('modal-gift-bank').textContent = b.bank;
+  document.getElementById('modal-gift-account').textContent = b.account;
+  document.getElementById('modal-gift-holder').textContent = b.name;
+  document.getElementById('btn-copy-modal').onclick = function () {
+    copyBankAccount('modal-gift-account');
+  };
+  document.getElementById('gift-modal').style.display = "flex";
+}
 
-  function openMapModal() {
-    const mapImg = document.getElementById('actual-map-img');
-    const modalImg = document.getElementById('img01');
-    if (mapImg && modalImg) {
-      modalImg.src = mapImg.src;
-      document.getElementById('map-modal').style.display = "flex";
-    }
-  }
+function closeGiftModal() {
+  document.getElementById('gift-modal').style.display = "none";
+}
 
-  function closeMapModal() {
-    document.getElementById('map-modal').style.display = "none";
+function openMapModal() {
+  const mapImg = document.getElementById('actual-map-img');
+  const modalImg = document.getElementById('img01');
+  if (mapImg && modalImg) {
+    modalImg.src = mapImg.src;
+    document.getElementById('map-modal').style.display = "flex";
   }
+}
 
-  function escapeHTML(str) {
-    return str.replace(/[&<>'"]/g,
-      tag => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        "'": '&#39;',
-        '"': '&quot;'
-      }[tag] || tag)
-    );
-  }
+function closeMapModal() {
+  document.getElementById('map-modal').style.display = "none";
+}
 
-  // Close modals when clicking outside
-  window.onclick = function (event) {
-    if (event.target.classList.contains('modal')) {
-      event.target.style.display = "none";
-    }
+function escapeHTML(str) {
+  return str.replace(/[&<>'"]/g,
+    tag => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      "'": '&#39;',
+      '"': '&quot;'
+    }[tag] || tag)
+  );
+}
+
+// Close modals when clicking outside
+window.onclick = function (event) {
+  if (event.target.classList.contains('modal')) {
+    event.target.style.display = "none";
   }
+}
 
 
