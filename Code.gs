@@ -9,11 +9,11 @@ function doGet(e) {
   var page = e.parameter.page;
   var template;
   if (page === 'admin') {
-    template = HtmlService.createTemplateFromFile('GAPS/Admin');
+    template = HtmlService.createTemplateFromFile('Admin');
   } else if (page === 'login') {
-    template = HtmlService.createTemplateFromFile('GAPS/Login');
+    template = HtmlService.createTemplateFromFile('Login');
   } else {
-    template = HtmlService.createTemplateFromFile('GAPS/Index');
+    template = HtmlService.createTemplateFromFile('Index');
   }
   return template.evaluate()
     .setTitle('Undangan Pernikahan')
@@ -74,7 +74,7 @@ function handleApiRequest(data) {
 }
 
 function include(filename) {
-  return HtmlService.createHtmlOutputFromFile('GAPS/' + filename).getContent();
+  return HtmlService.createHtmlOutputFromFile('' + filename).getContent();
 }
 
 function getScriptUrl() {
