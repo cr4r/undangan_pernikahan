@@ -8,6 +8,9 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;600&display=swap"
     rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Playfair+Display:ital,wght@0,500;1,500&family=Poppins:wght@300;400;500&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -30,7 +33,8 @@
   <button id="audio-btn" class="audio-btn" onclick="toggleAudio()" style="display:none;" title="Play/Pause Music">
     <i class="fas fa-music"></i>
   </button>
-  <button id="auto-scroll-btn" class="auto-scroll-btn" onclick="toggleAutoScroll()" style="display:none;" title="Auto Scroll">
+  <button id="auto-scroll-btn" class="auto-scroll-btn" onclick="toggleAutoScroll()" style="display:none;"
+    title="Auto Scroll">
     <i class="fas fa-chevron-down"></i>
   </button>
 
@@ -73,12 +77,12 @@
 
         <div class="couple-names">
           <div class="person">
-            <h3 id="groom-name">Putra</h3>
+            <h3 id="groom-name" class="script-font">Putra</h3>
             <p id="groom-desc">Putra dari Bpk. ... & Ibu ...</p>
           </div>
           <div class="and">&</div>
           <div class="person">
-            <h3 id="bride-name">Putri</h3>
+            <h3 id="bride-name" class="script-font">Putri</h3>
             <p id="bride-desc">Putri dari Bpk. ... & Ibu ...</p>
           </div>
         </div>
@@ -132,7 +136,8 @@
 
     <!-- Map Modal -->
     <div id="map-modal" class="modal" style="padding:0;">
-      <span class="modal-close" onclick="closeMapModal()" style="color:white; text-shadow:0 2px 4px rgba(0,0,0,0.5);">&times;</span>
+      <span class="modal-close" onclick="closeMapModal()"
+        style="color:white; text-shadow:0 2px 4px rgba(0,0,0,0.5);">&times;</span>
       <img class="map-modal-image" id="img01">
     </div>
 
@@ -234,6 +239,7 @@
     </ul>
   </nav>
 
+  <script src="api.js"></script>
   <script src="script.js"></script>
 </body>
 

@@ -1,122 +1,94 @@
-const GAS_URL = "ISI_URL_WEB_APP_GAS_ANDA_DISINI";
+// API requests are now handled by api.js
 
-function apiRequest(action, data, successCallback, errorCallback) {
-  fetch(GAS_URL, {
-    method: 'POST',
-    redirect: 'follow',
-    headers: {
-      'Content-Type': 'text/plain;charset=utf-8'
-    },
-    body: JSON.stringify(Object.assign({ action: action }, data))
-  })
-  .then(res => res.json())
-  .then(res => {
-    if (res.status === 'success') {
-      if(successCallback) successCallback(res.data);
-    } else {
-      console.error(res.message);
-      if(errorCallback) errorCallback(res.message);
-    }
-  })
-  .catch(err => {
-    console.error(err);
-    if(errorCallback) errorCallback(err);
-  });
+
+const token = localStorage.getItem('admin_token');
+let bankAccountsList = [];
+
+const Toast = Swal.mixin({
+  toast: true,
+  position: "bottom",
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+  didOpen: (toast) => {
+    toast.onmouseenter = Swal.stopTimer;
+    toast.onmouseleave = Swal.resumeTimer;
+  }
+});
+
+function showToast(message, type = 'success') {
+  Toast.fire({ icon: type, title: message });
 }
 
-
-  const token = localStorage.getItem('admin_token');
-  let bankAccountsList = [];
-
-  const Toast = Swal.mixin({
-    toast: true,
-    position: "bottom",
-    showConfirmButton: false,
-    timer: 3000,
-    timerProgressBar: true,
-    didOpen: (toast) => {
-      toast.onmouseenter = Swal.stopTimer;
-      toast.onmouseleave = Swal.resumeTimer;
-    }
-  });
-
-  function showToast(message, type = 'success') {
-    Toast.fire({ icon: type, title: message });
+document.addEventListener('DOMContentLoaded', () => {
+  if (!token) {
+    window.location.href = "login.html";
+    return;
   }
+  loadData();
+});
 
-  document.addEventListener('DOMContentLoaded', () => {
-    if (!token) {
-      google.script.run.withSuccessHandler((url) => {
-        window.top.location.href = url + "?page=login";
-      }).getScriptUrl();
-      return;
-    }
-    loadData();
-  });
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('show');
+  document.getElementById('sidebar-overlay').classList.toggle('show');
+}
 
-  function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('show');
-    document.getElementById('sidebar-overlay').classList.toggle('show');
-  }
-
-  function compressImage(file, maxWidth, maxHeight, quality, callback) {
-    if (!file.type.match(/image.*/)) {
-      const reader = new FileReader();
-      reader.onload = e => callback(e.target.result);
-      reader.readAsDataURL(file);
-      return;
-    }
+function compressImage(file, maxWidth, maxHeight, quality, callback) {
+  if (!file.type.match(/image.*/)) {
     const reader = new FileReader();
+    reader.onload = e => callback(e.target.result);
     reader.readAsDataURL(file);
-    reader.onload = event => {
-      const img = new Image();
-      img.src = event.target.result;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width; let height = img.height;
-        if (width > height) {
-          if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
-        } else {
-          if (height > maxHeight) { width = Math.round((width * maxHeight) / height); height = maxHeight; }
-        }
-        canvas.width = width; canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        callback(canvas.toDataURL(file.type, quality));
-      };
+    return;
+  }
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = event => {
+    const img = new Image();
+    img.src = event.target.result;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width; let height = img.height;
+      if (width > height) {
+        if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
+      } else {
+        if (height > maxHeight) { width = Math.round((width * maxHeight) / height); height = maxHeight; }
+      }
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      callback(canvas.toDataURL(file.type, quality));
     };
+  };
+}
+
+function showTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.getElementById(tabId + '-tab').classList.add('active');
+
+  document.querySelectorAll('.nav-links a').forEach(el => el.classList.remove('active'));
+  document.getElementById('nav-' + tabId).classList.add('active');
+
+  if (window.innerWidth <= 768) {
+    toggleSidebar();
   }
+}
 
-  function showTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.getElementById(tabId + '-tab').classList.add('active');
-    
-    document.querySelectorAll('.nav-links a').forEach(el => el.classList.remove('active'));
-    document.getElementById('nav-' + tabId).classList.add('active');
+function logout() {
+  localStorage.removeItem('admin_token');
+  window.location.href = "login.html";
+}
 
-    if(window.innerWidth <= 768) {
-      toggleSidebar();
-    }
-  }
+function loadData() {
+  apiRequest('getSettings', { token: token }, populateSettings, handleError);
+  apiRequest('getGallery', {}, populateGallery);
+  apiRequest('getRSVPs', { token: token }, populateRSVP);
+}
 
-  function logout() {
-    localStorage.removeItem('admin_token');
-    google.script.run.withSuccessHandler((url) => {
-      window.top.location.href = url + "?page=login";
-    }).getScriptUrl();
-  }
-
-  function loadData() {
-    apiRequest('getSettings', {token: localStorage.getItem('auth_token')}, populateSettings).withFailureHandler(handleError);
-    google.script.run.withSuccessHandler(populateGallery).getGallery();
-    apiRequest('getRSVPs', {token: token}, populateRSVP);
-  }
-
-  function renderBankList() {
-    const container = document.getElementById('bank-list');
-    container.innerHTML = '';
-    bankAccountsList.forEach((bank, index) => {
-      container.innerHTML += `
+function renderBankList() {
+  const container = document.getElementById('bank-list');
+  container.innerHTML = '';
+  bankAccountsList.forEach((bank, index) => {
+    container.innerHTML += `
         <div class="bank-item" id="bank-item-${index}">
           <button type="button" class="btn-remove-bank" onclick="removeBankField(${index})"><i class="fas fa-times-circle"></i></button>
           <div class="floating-group">
@@ -141,175 +113,195 @@ function apiRequest(action, data, successCallback, errorCallback) {
           </div>
         </div>
       `;
-    });
-  }
+  });
+}
 
-  function handleBankIconUpload(input) {
-    if (input.files.length > 0) {
-      const item = input.closest('.bank-item');
-      const existingUrl = item.querySelector('.bank-existing-url').value;
-      
-      const processUpload = () => {
-        compressImage(input.files[0], 200, 200, 0.8, function(dataUrl) {
-          item.querySelector('.bank-icon-base64').value = dataUrl;
-          item.querySelector('.bank-icon-mime').value = input.files[0].type;
-        });
-      };
+function handleBankIconUpload(input) {
+  if (input.files.length > 0) {
+    const item = input.closest('.bank-item');
+    const existingUrl = item.querySelector('.bank-existing-url').value;
 
-      if (existingUrl) {
-        Swal.fire({
-          title: 'Timpa Ikon Rekening?',
-          text: 'Sudah ada ikon terunggah. Ingin menimpanya?',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Ya, Timpa',
-          cancelButtonText: 'Batal'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            processUpload();
-          } else {
-            input.value = ''; // clear input
-          }
-        });
-      } else {
-        processUpload();
-      }
-    }
-  }
-
-  function handleMapUpload(input) {
-    if (input.files.length > 0) {
-      const mapStatus = document.getElementById('map-existing-status');
-      if (mapStatus.getAttribute('data-exists') === 'true') {
-        Swal.fire({
-          title: 'Timpa Denah Lokasi?',
-          text: 'Sudah ada file denah yang tersimpan. Ingin menimpanya?',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Ya, Timpa',
-          cancelButtonText: 'Batal'
-        }).then((result) => {
-          if (!result.isConfirmed) {
-            input.value = ''; // clear input
-          }
-        });
-      }
-    }
-  }
-
-  function addBankField() {
-    syncBankListFromDOM();
-    bankAccountsList.push({bank: '', account: '', name: ''});
-    renderBankList();
-  }
-
-  function removeBankField(index) {
-    syncBankListFromDOM();
-    bankAccountsList.splice(index, 1);
-    renderBankList();
-  }
-
-  function syncBankListFromDOM() {
-    const items = document.querySelectorAll('.bank-item');
-    bankAccountsList = [];
-    items.forEach(item => {
-      bankAccountsList.push({
-        bank: item.querySelector('.bank-name-input').value,
-        account: item.querySelector('.bank-acc-input').value,
-        name: item.querySelector('.bank-holder-input').value,
-        iconBase64: item.querySelector('.bank-icon-base64').value,
-        iconMime: item.querySelector('.bank-icon-mime').value,
-        iconUrl: item.querySelector('.bank-icon-base64').value.startsWith('http') ? item.querySelector('.bank-icon-base64').value : undefined
+    const processUpload = () => {
+      compressImage(input.files[0], 200, 200, 0.8, function (dataUrl) {
+        item.querySelector('.bank-icon-base64').value = dataUrl;
+        item.querySelector('.bank-icon-mime').value = input.files[0].type;
       });
-    });
-  }
-
-  function populateSettings(data) {
-    document.getElementById('BrideName').value = data.BrideName || '';
-    document.getElementById('BrideDesc').value = data.BrideDesc || '';
-    document.getElementById('GroomName').value = data.GroomName || '';
-    document.getElementById('GroomDesc').value = data.GroomDesc || '';
-    document.getElementById('Greeting').value = data.Greeting || '';
-    document.getElementById('AkadDate').value = data.AkadDate || '';
-    document.getElementById('ResepsiDate').value = data.ResepsiDate || '';
-    document.getElementById('MusicUrl').value = data.MusicUrl || '';
-    document.getElementById('MapsLink').value = data.MapsLink || '';
-    
-    const mapStatus = document.getElementById('map-existing-status');
-    if (data.MapImage) {
-      mapStatus.innerHTML = `<i class="fas fa-check-circle" style="color:green;"></i> File sudah ter-upload.`;
-      mapStatus.setAttribute('data-exists', 'true');
-    } else {
-      mapStatus.innerHTML = `Belum ada file ter-upload.`;
-      mapStatus.setAttribute('data-exists', 'false');
-    }
-
-    if (data.BankAccounts) {
-      try { bankAccountsList = JSON.parse(data.BankAccounts); } catch(e) { bankAccountsList = []; }
-    } else {
-      bankAccountsList = [];
-    }
-    renderBankList();
-    
-    document.getElementById('loader').style.display = 'none';
-    document.getElementById('admin-layout').style.display = 'flex';
-  }
-
-  function saveSettings(e) {
-    e.preventDefault();
-    syncBankListFromDOM();
-    const btn = document.getElementById('btn-save-settings');
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
-    btn.disabled = true;
-
-    const data = {
-      BrideName: document.getElementById('BrideName').value,
-      BrideDesc: document.getElementById('BrideDesc').value,
-      GroomName: document.getElementById('GroomName').value,
-      GroomDesc: document.getElementById('GroomDesc').value,
-      Greeting: document.getElementById('Greeting').value,
-      AkadDate: document.getElementById('AkadDate').value,
-      ResepsiDate: document.getElementById('ResepsiDate').value,
-      MusicUrl: document.getElementById('MusicUrl').value,
-      MapsLink: document.getElementById('MapsLink').value,
-      BankAccounts: JSON.stringify(bankAccountsList)
     };
 
-    const mapFileInput = document.getElementById('MapImageFile');
-    if (mapFileInput.files.length > 0) {
-      const file = mapFileInput.files[0];
-      compressImage(file, 800, 800, 0.7, function(dataUrl) {
-        data.MapImageBase64 = dataUrl;
-        data.MapImageMime = file.type;
-        sendSettings(data, btn);
+    if (existingUrl) {
+      Swal.fire({
+        title: 'Timpa Ikon Rekening?',
+        text: 'Sudah ada ikon terunggah. Ingin menimpanya?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Timpa',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          processUpload();
+        } else {
+          input.value = ''; // clear input
+        }
       });
     } else {
-      sendSettings(data, btn);
+      processUpload();
+    }
+  }
+}
+
+function handleMapUpload(input) {
+  if (input.files.length > 0) {
+    const mapStatus = document.getElementById('map-existing-status');
+    if (mapStatus.getAttribute('data-exists') === 'true') {
+      Swal.fire({
+        title: 'Timpa Denah Lokasi?',
+        text: 'Sudah ada file denah yang tersimpan. Ingin menimpanya?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Timpa',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (!result.isConfirmed) {
+          input.value = ''; // clear input
+        }
+      });
+    }
+  }
+}
+
+function addBankField() {
+  syncBankListFromDOM();
+  bankAccountsList.push({ bank: '', account: '', name: '' });
+  renderBankList();
+}
+
+function removeBankField(index) {
+  syncBankListFromDOM();
+  bankAccountsList.splice(index, 1);
+  renderBankList();
+}
+
+function syncBankListFromDOM() {
+  const items = document.querySelectorAll('.bank-item');
+  bankAccountsList = [];
+  items.forEach(item => {
+    bankAccountsList.push({
+      bank: item.querySelector('.bank-name-input').value,
+      account: item.querySelector('.bank-acc-input').value,
+      name: item.querySelector('.bank-holder-input').value,
+      iconBase64: item.querySelector('.bank-icon-base64').value,
+      iconMime: item.querySelector('.bank-icon-mime').value,
+      iconUrl: item.querySelector('.bank-icon-base64').value.startsWith('http') ? item.querySelector('.bank-icon-base64').value : undefined
+    });
+  });
+}
+
+function populateSettings(data) {
+  document.getElementById('BrideName').value = data.BrideName || '';
+  document.getElementById('BrideDesc').value = data.BrideDesc || '';
+  document.getElementById('GroomName').value = data.GroomName || '';
+  document.getElementById('GroomDesc').value = data.GroomDesc || '';
+  document.getElementById('Greeting').value = data.Greeting || '';
+  document.getElementById('AkadDate').value = data.AkadDate || '';
+  document.getElementById('ResepsiDate').value = data.ResepsiDate || '';
+  document.getElementById('MusicUrl').value = data.MusicUrl || '';
+  document.getElementById('MapsLink').value = data.MapsLink || '';
+
+  const mapStatus = document.getElementById('map-existing-status');
+  if (data.MapImage) {
+    mapStatus.innerHTML = `<i class="fas fa-check-circle" style="color:green;"></i> File sudah ter-upload.`;
+    mapStatus.setAttribute('data-exists', 'true');
+  } else {
+    mapStatus.innerHTML = `Belum ada file ter-upload.`;
+    mapStatus.setAttribute('data-exists', 'false');
+  }
+
+  if (data.BankAccounts) {
+    try { bankAccountsList = JSON.parse(data.BankAccounts); } catch (e) { bankAccountsList = []; }
+  } else {
+    bankAccountsList = [];
+  }
+  renderBankList();
+
+  document.getElementById('loader').style.display = 'none';
+  document.getElementById('admin-layout').style.display = 'flex';
+}
+
+function saveSettings(e) {
+  e.preventDefault();
+  syncBankListFromDOM();
+  const btn = document.getElementById('btn-save-settings');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+  btn.disabled = true;
+
+  const data = {
+    BrideName: document.getElementById('BrideName').value,
+    BrideDesc: document.getElementById('BrideDesc').value,
+    GroomName: document.getElementById('GroomName').value,
+    GroomDesc: document.getElementById('GroomDesc').value,
+    Greeting: document.getElementById('Greeting').value,
+    AkadDate: document.getElementById('AkadDate').value,
+    ResepsiDate: document.getElementById('ResepsiDate').value,
+    MusicUrl: document.getElementById('MusicUrl') ? document.getElementById('MusicUrl').value : '',
+    MapsLink: document.getElementById('MapsLink').value,
+    BankAccounts: JSON.stringify(bankAccountsList)
+  };
+
+  const mapFileInput = document.getElementById('MapImageFile');
+  const musicFileInput = document.getElementById('MusicFile');
+
+  function proceedToSend() {
+    sendSettings(data, btn);
+  }
+
+  function readMusicFile(callback) {
+    if (musicFileInput && musicFileInput.files.length > 0) {
+      const file = musicFileInput.files[0];
+      // Validasi ukuran maksimal (misal 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        Swal.fire('Terlalu Besar', 'Ukuran file musik maksimal 5MB.', 'error');
+        btn.innerHTML = '<i class="fas fa-save"></i> Simpan Semua Pengaturan';
+        btn.disabled = false;
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        data.MusicFileBase64 = e.target.result;
+        data.MusicFileMime = file.type;
+        data.MusicFileName = file.name;
+        callback();
+      };
+      reader.readAsDataURL(file);
+    } else {
+      callback();
     }
   }
 
-  function sendSettings(data, btn) {
-    google.script.run.withSuccessHandler((res) => {
-      showToast('Pengaturan berhasil disimpan!', 'success');
-      btn.innerHTML = '<i class="fas fa-save"></i> Simpan Semua Pengaturan';
-      btn.disabled = false;
-      document.getElementById('MapImageFile').value = '';
-    }).withFailureHandler((err) => {
-      handleError(err);
-      btn.innerHTML = '<i class="fas fa-save"></i> Simpan Semua Pengaturan';
-      btn.disabled = false;
-    }).saveSettings(data, token);
+  if (mapFileInput.files.length > 0) {
+    const file = mapFileInput.files[0];
+    compressImage(file, 800, 800, 0.7, function (dataUrl) {
+      data.MapImageBase64 = dataUrl;
+      data.MapImageMime = file.type;
+      readMusicFile(proceedToSend);
+    });
+  } else {
+    readMusicFile(proceedToSend);
   }
+}
 
-  function populateGallery(data) {
-    const tbody = document.getElementById('gallery-tbody');
-    tbody.innerHTML = '';
-    data.forEach(item => {
-      let preview = item.type === 'photo' 
-        ? `<img src="${item.url}" class="preview-img">`
-        : `<video src="${item.url}" class="preview-img"></video>`;
-        
-      tbody.innerHTML += `
+function sendSettings(data, btn) {
+  apiRequest('saveSettings', { settings: data, token: token }, (res) => { if (res.success) { showToast('Pengaturan berhasil disimpan!', 'success'); document.getElementById('MapImageFile').value = ''; } else showToast('Gagal menyimpan', 'error'); btn.innerHTML = '<i class="fas fa-save"></i> Simpan Semua Pengaturan'; btn.disabled = false; }, (err) => { handleError(err); btn.innerHTML = '<i class="fas fa-save"></i> Simpan Semua Pengaturan'; btn.disabled = false; });
+}
+
+function populateGallery(data) {
+  const tbody = document.getElementById('gallery-tbody');
+  tbody.innerHTML = '';
+  data.forEach(item => {
+    let preview = item.type === 'photo'
+      ? `<img src="${item.url}" class="preview-img">`
+      : `<video src="${item.url}" class="preview-img"></video>`;
+
+    tbody.innerHTML += `
         <tr>
           <td>${preview}</td>
           <td>${escapeHTML(item.name || '')}</td>
@@ -318,70 +310,56 @@ function apiRequest(action, data, successCallback, errorCallback) {
           </td>
         </tr>
       `;
-    });
-  }
+  });
+}
 
-  function addGallery(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btn-add-gallery');
-    
-    const fileInput = document.getElementById('media-file');
-    if (fileInput.files.length === 0) {
-      showToast("Harap pilih file gambar!", 'error');
-      return;
+function addGallery(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-add-gallery');
+
+  const fileInput = document.getElementById('media-file');
+  if (fileInput.files.length === 0) {
+    showToast("Harap pilih file gambar!", 'error');
+    return;
+  }
+  const file = fileInput.files[0];
+
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+  btn.disabled = true;
+
+  compressImage(file, 1000, 1000, 0.8, function (dataUrl) {
+    const item = {
+      name: document.getElementById('media-name').value,
+      type: document.getElementById('media-type').value,
+      mimeType: file.type,
+      base64Data: dataUrl
+    };
+
+    apiRequest('addGalleryItem', { item: item, token: token }, (res) => { if (res.success) { showToast('Media berhasil ditambahkan!', 'success'); document.getElementById('add-gallery-form').reset(); loadData(); } btn.innerHTML = '<i class="fas fa-upload"></i> Unggah Media'; btn.disabled = false; }, (err) => { btn.innerHTML = '<i class="fas fa-upload"></i> Unggah Media'; btn.disabled = false; handleError(err); });
+  });
+}
+
+function deleteGalleryItem(id) {
+  Swal.fire({
+    title: 'Yakin menghapus media ini?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Ya, hapus!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      apiRequest('deleteGalleryItem', { id: id, token: token }, (res) => { if (res.success) { showToast('Media dihapus', 'success'); loadData(); } }, handleError);
     }
-    const file = fileInput.files[0];
-    
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-    btn.disabled = true;
+  });
+}
 
-    compressImage(file, 1000, 1000, 0.8, function(dataUrl) {
-      const item = {
-        name: document.getElementById('media-name').value,
-        type: document.getElementById('media-type').value,
-        mimeType: file.type,
-        base64Data: dataUrl
-      };
-
-      google.script.run.withSuccessHandler((res) => {
-        if(res.success) {
-          showToast('Media berhasil ditambahkan!', 'success');
-          document.getElementById('add-gallery-form').reset();
-          loadData(); 
-        }
-        btn.innerHTML = '<i class="fas fa-upload"></i> Unggah Media';
-        btn.disabled = false;
-      }).withFailureHandler((err) => {
-        btn.innerHTML = '<i class="fas fa-upload"></i> Unggah Media';
-        btn.disabled = false;
-        handleError(err);
-      }).addGalleryItem(item, token);
-    });
-  }
-
-  function deleteGalleryItem(id) {
-    Swal.fire({
-      title: 'Yakin menghapus media ini?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Ya, hapus!'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        google.script.run.withSuccessHandler((res) => {
-          if(res.success) { showToast('Media dihapus', 'success'); loadData(); }
-        }).withFailureHandler(handleError).deleteGalleryItem(id, token);
-      }
-    });
-  }
-
-  function populateRSVP(data) {
-    const tbody = document.getElementById('rsvp-tbody');
-    tbody.innerHTML = '';
-    data.forEach(item => {
-      const date = new Date(item.timestamp).toLocaleString('id-ID');
-      tbody.innerHTML += `
+function populateRSVP(data) {
+  const tbody = document.getElementById('rsvp-tbody');
+  tbody.innerHTML = '';
+  data.forEach(item => {
+    const date = new Date(item.timestamp).toLocaleString('id-ID');
+    tbody.innerHTML += `
         <tr>
           <td>${date}</td>
           <td>${escapeHTML(item.name)}</td>
@@ -390,19 +368,22 @@ function apiRequest(action, data, successCallback, errorCallback) {
           <td>${escapeHTML(item.message)}</td>
         </tr>
       `;
-    });
-  }
+  });
+}
 
-  function handleError(err) {
-    showToast(err.message || 'Terjadi kesalahan. Silakan coba lagi.', 'error');
-    if(err.message === 'Unauthorized') { logout(); }
-  }
+function handleError(err) {
+  showToast(err.message || 'Terjadi kesalahan. Silakan coba lagi.', 'error');
+  if (err.message === 'Unauthorized') { logout(); }
+}
 
-  function escapeHTML(str) {
-    return (str+'').replace(/[&<>'"]/g, 
-      tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-    );
-  }
+function escapeHTML(str) {
+  return (str + '').replace(/[&<>'"]/g,
+    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+  );
+}
+
+
+
 
 
 

@@ -80,6 +80,17 @@ Aplikasi ini dilengkapi dengan Panel Admin eksklusif dan dinamis (Dashboard) yan
 *Dikembangkan untuk memberikan solusi E-Invitation premium dan bebas biaya server bulanan!*
 ## ?? Changelog
 
+### v8.4.3 (Bulletproof Google Drive Audio Proxy)
+- **Drive Audio Data URI API**: Karena pengetatan restriksi CORS dan *third-party cookie* oleh Google Drive di tahun 2024, pemutaran audio secara langsung ( *direct streaming* ) sering kali ditolak *browser*. Oleh karena itu, skrip kini secara dinamis mengekstrak `fileId` dari *link* Drive dan menggunakan Google Apps Script API internal (`getAudioData`) untuk mengubah *file audio* tersebut menjadi data mentah Base64. Data ini kemudian diinjeksikan sebagai *Data URI* (`data:audio/mp3;base64,...`), menjamin pemutaran audio selalu berhasil 100% pada semua peramban modern.
+
+### v8.4.1 (Bugfix Music Base64 Exceeds Cell Limit)
+- **Fix Payload Overflow**: Menambahkan variabel `MusicFileBase64` ke daftar *exclude* di dalam fungsi iterasi penyimpanan `Code.gs` untuk mencegah *crash* akibat batasan 50.000 karakter per sel pada Google Sheets yang sebelumnya memicu *error CORS*.
+
+### v8.3.0 (Security & Centralization Update)
+- **Centralized API Config**: Memisahkan fungsi konfigurasi URL GAS dan fungsi *request* `fetch` ke dalam satu file tersendiri (`api.js`). Mempermudah *maintenance* ketika URL *deployment* GAS berubah di masa depan.
+- **Frontend Security Layers**: Mengaplikasikan metode *Anti View-Source* (memblokir klik kanan, F12, dan Inspect Element shortcut) di `api.js`. 
+- **Backend API Protection**: Menerapkan validasi *API Key* tersembunyi antara `api.js` dan `Code.gs` (menggunakan *hex-obfuscation*) yang secara otomatis menolak segala *request* ilegal yang ditembakkan dari luar aplikasi web asli.
+
 ### v8.0.0 (Major Architecture Shift - Github Pages Ready)
 - **Architecture (Hybrid Frontend)**: Merombak arsitektur aplikasi menjadi dua mode deployment: Static Frontend untuk **GitHub Pages** dan Native Frontend untuk **Google Apps Script**. File-file HTML/CSS/JS diakar proyek sekarang 100% murni dan independen, sedangkan file *template* spesifik GAS dipindahkan ke dalam folder `GAPS/`.
 - **Backend (REST API)**: Memperbarui logika `Code.gs` dengan dukungan layanan API via metode `doPost(e)`. Google Apps Script kini berperan sebagai *headless* API (didukung CORS) untuk berinteraksi (*fetch*) secara mulus dengan antarmuka yang di-*hosting* di luar server Google.

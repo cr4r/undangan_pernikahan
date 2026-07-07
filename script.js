@@ -1,28 +1,4 @@
-const GAS_URL = "https://script.google.com/macros/s/AKfycbxMu77wZpVy2mIOJLjve5Wu3Bj4lMshpgnPyJ-VWoJWMrC4OreMfKKXjb0XEnOPDLgi/exec";
-
-function apiRequest(action, data, successCallback, errorCallback) {
-  fetch(GAS_URL, {
-    method: 'POST',
-    redirect: 'follow',
-    headers: {
-      'Content-Type': 'text/plain;charset=utf-8'
-    },
-    body: JSON.stringify(Object.assign({ action: action }, data))
-  })
-    .then(res => res.json())
-    .then(res => {
-      if (res.status === 'success') {
-        if (successCallback) successCallback(res.data);
-      } else {
-        console.error(res.message);
-        if (errorCallback) errorCallback(res.message);
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      if (errorCallback) errorCallback(err);
-    });
-}
+// API requests are now handled by api.js
 
 
 let isPlaying = false;
@@ -164,7 +140,36 @@ function initPage(data) {
   }
 
   // Audio
-  document.getElementById('bg-music').src = s.MusicUrl;
+  let musicUrl = s.MusicUrl;
+  if (musicUrl && musicUrl.includes('drive.google.com/uc')) {
+    try {
+      const urlParams = new URLSearchParams(musicUrl.split('?')[1]);
+      const fileId = urlParams.get('id');
+      if (fileId) {
+        window.apiRequest('getAudioData', { fileId: fileId }, function(res) {
+          const audio = document.getElementById('bg-music');
+          const isInvitationOpen = document.getElementById('home').style.display === 'none';
+          
+          if (res.success && res.base64) {
+            audio.src = 'data:' + res.mimeType + ';base64,' + res.base64;
+          } else {
+            audio.src = musicUrl;
+          }
+          
+          if (isInvitationOpen) {
+            audio.play().catch(e => console.log('Audio play failed', e));
+            document.getElementById('audio-btn').style.display = 'flex';
+          }
+        });
+      } else {
+        document.getElementById('bg-music').src = musicUrl;
+      }
+    } catch(e) {
+      document.getElementById('bg-music').src = musicUrl;
+    }
+  } else {
+    document.getElementById('bg-music').src = musicUrl;
+  }
 
   // Gallery
   const galleryGrid = document.getElementById('gallery-grid');
@@ -321,7 +326,7 @@ function startCountdown() {
 }
 
 function loadWishes() {
-  google.script.run.withSuccessHandler((data) => {
+  apiRequest('getPublicData', {}, (data) => {
     const list = document.getElementById('wishes-list');
     list.innerHTML = '';
     const rsvps = data.rsvps;
@@ -357,7 +362,7 @@ function loadWishes() {
         `;
       list.appendChild(div);
     });
-  }).getPublicData();
+  });
 }
 
 function submitRSVP(e) {
@@ -373,7 +378,7 @@ function submitRSVP(e) {
     message: document.getElementById('rsvp-message').value
   };
 
-  google.script.run.withSuccessHandler((res) => {
+  apiRequest('saveRSVP', { data: data }, (res) => {
     if (res.success) {
       showToast('Terima kasih atas ucapan Anda!', 'success');
       document.getElementById('rsvp-form').reset();
@@ -383,11 +388,11 @@ function submitRSVP(e) {
     }
     btn.textContent = 'Kirim Ucapan';
     btn.disabled = false;
-  }).withFailureHandler((err) => {
+  }, (err) => {
     showToast('Terjadi kesalahan. Coba lagi.', 'error');
     btn.textContent = 'Kirim Ucapan';
     btn.disabled = false;
-  }).saveRSVP(data);
+  });
 }
 
 function copyBankAccount(elementId) {
@@ -454,5 +459,6 @@ window.onclick = function (event) {
     event.target.style.display = "none";
   }
 }
+
 
 

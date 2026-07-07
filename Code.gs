@@ -1,23 +1,15 @@
 function doGet(e) {
   var action = e.parameter.action;
   
-  // Return API response if requested via GET
   if (action) {
     return handleApiRequest(e.parameter);
   }
-
-  var page = e.parameter.page;
-  var template;
-  if (page === 'admin') {
-    template = HtmlService.createTemplateFromFile('Admin');
-  } else if (page === 'login') {
-    template = HtmlService.createTemplateFromFile('Login');
-  } else {
-    template = HtmlService.createTemplateFromFile('Index');
-  }
-  return template.evaluate()
-    .setTitle('Undangan Pernikahan')
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  
+  // Default API response
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success', 
+    message: 'Undangan Pernikahan API is running successfully.'
+  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
@@ -32,13 +24,17 @@ function doPost(e) {
 
 function handleApiRequest(data) {
   try {
+    if (data.apiKey !== 'cr4r_wedding_secret_2026') {
+      throw new Error('Unauthorized Access: Invalid API Key');
+    }
+    
     var action = data.action;
     var responseData = {};
     
     if (action === 'getPublicData') {
       responseData = getPublicData();
-    } else if (action === 'submitRsvp') {
-      var res = submitRsvp(data.name, data.attendance, data.guests, data.message);
+    } else if (action === 'saveRSVP') {
+      var res = saveRSVP(data.data);
       responseData = {result: res};
     } else if (action === 'getSettings') {
       responseData = getSettings(data.token);
@@ -46,17 +42,19 @@ function handleApiRequest(data) {
       responseData = getGallery();
     } else if (action === 'getRSVPs') {
       responseData = getRSVPs(data.token);
+    } else if (action === 'getAudioData') {
+      responseData = getAudioData(data.fileId);
     } else if (action === 'login') {
-      var res = checkLogin(data.password);
+      var res = login(data.username, data.password);
       responseData = {result: res};
     } else if (action === 'saveSettings') {
       var res = saveSettings(data.settings, data.token);
       responseData = {result: res};
-    } else if (action === 'uploadMedia') {
-      var res = uploadMedia(data.base64Data, data.fileName, data.mimeType, data.token);
+    } else if (action === 'addGalleryItem') {
+      var res = addGalleryItem(data.item, data.token);
       responseData = {result: res};
-    } else if (action === 'deleteMedia') {
-      var res = deleteMedia(data.id, data.token);
+    } else if (action === 'deleteGalleryItem') {
+      var res = deleteGalleryItem(data.id, data.token);
       responseData = {result: res};
     } else if (action === 'deleteRsvp') {
       var res = deleteRsvp(data.rowNum, data.token);
@@ -73,9 +71,7 @@ function handleApiRequest(data) {
   }
 }
 
-function include(filename) {
-  return HtmlService.createHtmlOutputFromFile('' + filename).getContent();
-}
+
 
 function getScriptUrl() {
   return ScriptApp.getService().getUrl();
@@ -175,6 +171,10 @@ function saveSettings(settings, token) {
     settings.MapImage = uploadFileToDrive(settings.MapImageBase64, 'denah.png', settings.MapImageMime, 'Undangan Pernikahan');
   }
 
+  if (settings.MusicFileBase64) {
+    settings.MusicUrl = uploadFileToDrive(settings.MusicFileBase64, settings.MusicFileName || 'musik_latar.mp3', settings.MusicFileMime, 'Undangan Pernikahan');
+  }
+
   // Handle Bank Icons
   if (settings.BankAccounts) {
     try {
@@ -200,7 +200,8 @@ function saveSettings(settings, token) {
 
   // Update or Append
   for (var key in settings) {
-    if (key !== 'MapImageBase64' && key !== 'MapImageMime') { // Skip temporary upload variables
+    if (key !== 'MapImageBase64' && key !== 'MapImageMime' && 
+        key !== 'MusicFileBase64' && key !== 'MusicFileMime' && key !== 'MusicFileName') { // Skip temporary upload variables
       if (existingKeys[key]) {
         sheet.getRange(existingKeys[key], 2).setValue(settings[key]);
       } else {
@@ -344,6 +345,26 @@ function uploadFileToDrive(base64Data, filename, mimeType, folderName, parentFol
   var file = folder.createFile(blob);
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   
+  if (mimeType.indexOf('audio/') > -1) {
+    return 'https://drive.google.com/uc?export=download&confirm=t&id=' + file.getId();
+  }
+  
   // Return the direct view URL
   return 'https://drive.google.com/thumbnail?id=' + file.getId() + '&sz=w1000';
 }
+
+
+function getAudioData(fileId) {
+  try {
+    var file = DriveApp.getFileById(fileId);
+    var base64 = Utilities.base64Encode(file.getBlob().getBytes());
+    return {
+      success: true,
+      mimeType: file.getMimeType(),
+      base64: base64
+    };
+  } catch(e) {
+    return { success: false, message: e.toString() };
+  }
+}
+

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Undangan Pernikahan - Adam & Hawwa</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Playfair+Display:ital,wght@0,500;1,500&family=Poppins:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #7e947d;
+            /* Sage Green */
+            --bg-color: #eaf0eb;
+            /* Light Sage Background */
+            --text-dark: #3a423a;
+            --white: #ffffff;
+            --border-radius: 15px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            /* Watercolor texture fallback */
+            background-image: radial-gradient(circle at top right, #f4f7f4, transparent),
+                radial-gradient(circle at bottom left, #d8e2d9, transparent);
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Membatasi lebar agar terlihat seperti tampilan HP di layar laptop */
+        .mobile-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: var(--bg-color);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+            /* Ruang untuk navbar bawah */
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Typography */
+        h1,
+        h2,
+        h3 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 500;
+        }
+
+        .script-font {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin: 15px 0;
+        }
+
+        p {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        /* Ornamen Bunga (Bisa diganti dengan gambar PNG) */
+        .floral-top {
+            width: 150px;
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            opacity: 0.8;
+        }
+
+        .floral-bottom {
+            width: 150px;
+            position: absolute;
+            bottom: 60px;
+            right: -10px;
+            opacity: 0.8;
+        }
+
+        /* Sections */
+        section {
+            padding: 50px 20px;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Cover Section */
+        .cover-img {
+            width: 200px;
+            height: 250px;
+            background-color: #d1dcd1;
+            border-radius: 100px 100px 10px 10px;
+            /* Bentuk kubah */
+            margin: 20px auto;
+            object-fit: cover;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 20px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(126, 148, 125, 0.4);
+        }
+
+        /* Card Style (untuk jadwal, amplop, dll) */
+        .card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(5px);
+            border: 2px solid var(--primary);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            width: 100%;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        /* Gallery */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .gallery-grid img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .gallery-grid img:first-child {
+            grid-column: span 2;
+            height: 200px;
+        }
+
+        /* Bottom Navigation Bar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            border-radius: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .nav-item {
+            color: #a0b3a0;
+            font-size: 1.2rem;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .nav-item.active,
+        .nav-item:hover {
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="mobile-container">
+        <section id="home">
+            <h2 style="letter-spacing: 2px; font-size: 1.2rem; color: #555;">UNDANGAN<br>PERNIKAHAN</h2>
+
+            <img src="https://images.unsplash.com/photo-1606800052052-a08af7148866?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+                alt="Ilustrasi Pasangan" class="cover-img">
+
+            <h1 class="script-font" style="font-size: 3rem;">Adam & Hawwa</h1>
+
+            <p style="margin-top: 15px;">Kepada Bapak/Ibu/Saudara/i</p>
+            <p>Tanpa mengurangi rasa hormat, kami bermaksud mengundang Anda untuk menghadiri acara pernikahan kami.</p>
+
+            <a href="#couple" class="btn"><i class="fas fa-envelope-open-text"></i> Buka Undangan</a>
+        </section>
+
+        <section id="couple">
+            <h2 style="font-size: 1.2rem;">السَّلاَمُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ</h2>
+            <p style="margin-top: 15px;">Dengan memohon rahmat dan ridha Allah SWT, Insya Allah kami akan
+                menyelenggarakan acara pernikahan:</p>
+
+            <div style="margin: 30px 0;">
+                <h1 class="script-font">Adam Firdaus</h1>
+                <p style="font-weight: 500;">Putra Bapak & Ibunya</p>
+            </div>
+
+            <p style="font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.2rem;">Dengan</p>
+
+            <div style="margin: 30px 0;">
+                <h1 class="script-font">Hawwa Azzahra</h1>
+                <p style="font-weight: 500;">Putri Bapak & Ibunya</p>
+            </div>
+        </section>
+
+        <section id="date">
+            <h1 class="script-font" style="font-size: 3rem;">Save the Date</h1>
+
+            <div class="card">
+                <h3
+                    style="letter-spacing: 1px; margin-bottom: 15px; border-bottom: 1px solid var(--primary); padding-bottom: 10px;">
+                    AKAD NIKAH & RESEPSI</h3>
+
+                <div style="display: flex; justify-content: space-around; align-items: center; margin: 20px 0;">
+                    <div>
+                        <h2 style="font-size: 1.5rem;">SABTU</h2>
+                        <i class="far fa-calendar-alt"
+                            style="font-size: 2rem; color: var(--primary); margin: 10px 0;"></i>
+                    </div>
+                    <div
+                        style="font-size: 2.5rem; font-family: 'Playfair Display', serif; font-weight: bold; border-left: 2px solid var(--primary); padding-left: 20px;">
+                        24<br>
+                        <span style="font-size: 1.2rem; font-weight: normal; letter-spacing: 2px;">JUNI 2023</span>
+                    </div>
+                </div>
+
+                <p style="margin-top: 20px; font-weight: bold;">Bertempat di :</p>
+                <p><strong>Kediaman mempelai wanita</strong><br>
+                    Jl. Yang diridhai Allah menuju pernikahan yang sakinah mawaddah warahmah</p>
+
+                <a href="#" class="btn" style="margin-top: 15px;"><i class="fas fa-map-marker-alt"></i> Lokasi</a>
+            </div>
+        </section>
+
+        <section id="gallery">
+            <h1 class="script-font" style="font-size: 3rem;">Gallery</h1>
+
+            <div class="gallery-grid">
+                <img src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+                    alt="Galeri 1">
+                <img src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80"
+                    alt="Galeri 2">
+                <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80"
+                    alt="Galeri 3">
+                <img src="https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80"
+                    alt="Galeri 4">
+                <img src="https://images.unsplash.com/photo-1606800052052-a08af7148866?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80"
+                    alt="Galeri 5">
+            </div>
+        </section>
+
+        <section id="gift">
+            <h1 class="script-font" style="font-size: 2.5rem;">Kirim Hadiah<br><span style="font-size: 1.5rem;">untuk
+                    mempelai</span></h1>
+
+            <div class="card" style="margin-top: 30px;">
+                <h3 style="color: #0066AE; margin-bottom: 5px;">BCA</h3>
+                <p>No. Rekening:<br><strong>492074XXXX</strong></p>
+                <p style="margin-bottom: 20px;">a.n Adam Firdaus</p>
+
+                <hr style="border: 0; border-top: 1px dashed var(--primary); margin: 20px 0;">
+
+                <h3 style="color: #118EEA; margin-bottom: 5px;">DANA</h3>
+                <div
+                    style="background: white; padding: 10px; display: inline-block; border-radius: 10px; border: 1px solid #ccc; margin: 10px 0;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg"
+                        alt="QR Code" style="width: 120px; height: 120px;">
+                </div>
+                <p><strong>0812-3456-7890</strong></p>
+                <p style="margin-bottom: 20px;">a.n Hawwa Azzahra</p>
+
+                <a href="#" class="btn" style="background-color: #6c806b;"><i class="fab fa-whatsapp"></i>
+                    Konfirmasi</a>
+            </div>
+        </section>
+
+        <section id="closing" style="min-height: auto; padding-bottom: 100px;">
+            <i class="fas fa-quote-left" style="color: var(--primary); font-size: 2rem; margin-bottom: 15px;"></i>
+            <p style="font-style: italic;">"Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu
+                isteri-isteri dari jenismu sendiri, supaya kamu cenderung dan merasa tenteram kepadanya, dan
+                dijadikan-Nya diantaramu rasa kasih dan sayang. Sesungguhnya pada yang demikian itu benar-benar terdapat
+                tanda-tanda bagi kaum yang berfikir."</p>
+            <p><strong>(QS. Ar-Rum 30: 21)</strong></p>
+
+            <p style="margin-top: 40px;">Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila
+                Bapak/Ibu/Saudara/i berkenan hadir memberikan Do'a & Restu.</p>
+
+            <h2 style="font-size: 1.2rem; margin-top: 30px;">وَالسَّلاَمُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ</h2>
+
+            <h1 class="script-font" style="font-size: 3rem; margin-top: 30px;">Adam & Hawwa</h1>
+        </section>
+
+        <nav class="bottom-nav">
+            <a href="#home" class="nav-item active"><i class="fas fa-home"></i></a>
+            <a href="#couple" class="nav-item"><i class="fas fa-heart"></i></a>
+            <a href="#date" class="nav-item"><i class="fas fa-calendar-alt"></i></a>
+            <a href="#gallery" class="nav-item"><i class="fas fa-images"></i></a>
+            <a href="#gift" class="nav-item"><i class="fas fa-gift"></i></a>
+        </nav>
+    </div>
+
+    <script>
+        const sections = document.querySelectorAll("section");
+        const navItems = document.querySelectorAll(".nav-item");
+
+        window.addEventListener("scroll", () => {
+            let current = "";
+            sections.forEach((section) => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= sectionTop - sectionHeight / 3) {
+                    current = section.getAttribute("id");
+                }
+            });
+
+            navItems.forEach((item) => {
+                item.classList.remove("active");
+                if (item.getAttribute("href").includes(current)) {
+                    item.classList.add("active");
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

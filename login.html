@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Panel Admin</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@300;400;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    :root {
+      --primary-gold: #D4AF37;
+      --primary-dark: #3E2723;
+      --secondary-gold: #F3E5AB;
+      --accent-color: #8D6E63;
+      --glass-bg: rgba(255, 255, 255, 0.15);
+      --glass-border: rgba(255, 255, 255, 0.3);
+      --glass-shadow: rgba(0, 0, 0, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Montserrat', sans-serif;
+      /* Background pattern terinspirasi kain songket Palembang dengan warna elegan */
+      background: linear-gradient(135deg, #1a0f0a 0%, #3e2723 100%);
+      background-image:
+        radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 60%),
+        url('https://www.transparenttextures.com/patterns/stardust.png');
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    /* Ambient animated light */
+    .ambient-light {
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.3) 0%, rgba(0, 0, 0, 0) 70%);
+      border-radius: 50%;
+      top: -100px;
+      left: -100px;
+      animation: float 10s infinite ease-in-out alternate;
+      z-index: 0;
+    }
+
+    .ambient-light-2 {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(141, 110, 99, 0.2) 0%, rgba(0, 0, 0, 0) 70%);
+      border-radius: 50%;
+      bottom: -150px;
+      right: -100px;
+      animation: float 12s infinite ease-in-out alternate-reverse;
+      z-index: 0;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      100% {
+        transform: translate(50px, 50px) scale(1.1);
+      }
+    }
+
+    .login-container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+      animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Glassmorphism Card */
+    .login-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 25px 45px var(--glass-shadow);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle gold shine effect across the card */
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transform: skewX(-25deg);
+      animation: shine 6s infinite;
+    }
+
+    @keyframes shine {
+      0% {
+        left: -100%;
+      }
+
+      20% {
+        left: 200%;
+      }
+
+      100% {
+        left: 200%;
+      }
+    }
+
+    .login-card .icon-wrapper {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, var(--primary-gold), #FFF8E1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
+    }
+
+    .login-card .icon-wrapper i {
+      font-size: 2rem;
+      color: var(--primary-dark);
+    }
+
+    .login-card h2 {
+      font-family: 'Cinzel', serif;
+      color: var(--primary-gold);
+      font-size: 1.8rem;
+      margin-bottom: 5px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .login-card p {
+      color: var(--secondary-gold);
+      font-size: 0.85rem;
+      margin-bottom: 30px;
+      font-weight: 300;
+      letter-spacing: 1px;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+      text-align: left;
+      position: relative;
+    }
+
+    .form-group i {
+      position: absolute;
+      top: 50%;
+      left: 15px;
+      transform: translateY(-50%);
+      color: var(--primary-gold);
+      font-size: 1.1rem;
+      transition: color 0.3s;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 14px 15px 14px 45px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 10px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.95rem;
+      color: #fff;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .form-group input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .form-group input:focus {
+      border-color: var(--primary-gold);
+      background: rgba(0, 0, 0, 0.4);
+      box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-gold), #b8992e);
+      color: var(--primary-dark);
+      border: none;
+      padding: 15px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: 'Montserrat', sans-serif;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 15px rgba(212, 175, 55, 0.3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 20px rgba(212, 175, 55, 0.4);
+      background: linear-gradient(135deg, #e5c352, var(--primary-gold));
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary:disabled {
+      background: #777;
+      color: #ccc;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .footer-text {
+      margin-top: 25px;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="ambient-light"></div>
+  <div class="ambient-light-2"></div>
+
+  <div class="login-container">
+    <div class="login-card">
+      <div class="icon-wrapper">
+        <i class="fas fa-crown"></i>
+      </div>
+      <h2>Panel Admin</h2>
+      <p>Akses Khusus Pengelola Undangan</p>
+
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <i class="fas fa-user"></i>
+          <input type="text" id="username" required placeholder="Username (default: admin)" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="password" required placeholder="Password Anda" autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn-primary" id="btn-login">
+          <span>Masuk Panel</span>
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </form>
+
+      <div class="footer-text">
+        &copy; 2026 E-Wedding Organizer
+      </div>
+    </div>
+  </div>
+
+  <script src="api.js"></script>
+  <script>
+    function handleLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+      const btn = document.getElementById('btn-login');
+
+      btn.innerHTML = '<span>Memverifikasi...</span> <i class="fas fa-spinner fa-spin"></i>';
+      btn.disabled = true;
+      console.log("kirim data: " + user + "-" + pass);
+      apiRequest('login', { username: user, password: pass }, (data) => {
+        console.log(data);
+        if (data && data.token) {
+          localStorage.setItem('admin_token', data.token);
+          Swal.fire({
+            icon: 'success',
+            title: 'Akses Diberikan',
+            text: 'Selamat datang di Panel Admin.',
+            timer: 1500,
+            showConfirmButton: false,
+            background: '#3E2723',
+            color: '#fff',
+            iconColor: '#D4AF37'
+          }).then(() => {
+            window.location.href = 'admin.html';
+          });
+        } else {
+          Swal.fire({
+            title: 'Akses Ditolak',
+            text: 'Username atau Password salah.',
+            icon: 'error',
+            background: '#3E2723',
+            color: '#fff',
+            confirmButtonColor: '#D4AF37'
+          });
+          btn.innerHTML = '<span>Masuk Panel</span> <i class="fas fa-arrow-right"></i>';
+          btn.disabled = false;
+        }
+      }, (err) => {
+        Swal.fire({
+          title: 'Gagal',
+          text: err || 'Terjadi kesalahan sistem.',
+          icon: 'error',
+          background: '#3E2723',
+          color: '#fff',
+          confirmButtonColor: '#D4AF37'
+        });
+        btn.innerHTML = '<span>Masuk Panel</span> <i class="fas fa-arrow-right"></i>';
+        btn.disabled = false;
+      });
+    }
+  </script>
+</body>
+
+</html>

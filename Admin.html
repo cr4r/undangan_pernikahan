@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link rel="stylesheet" href="admin-style.css">
 </head>
+
 <body>
 
   <div id="loader" class="loader-container">
@@ -17,7 +19,7 @@
   </div>
 
   <div class="layout" style="display:none; width:100%;" id="admin-layout">
-    
+
     <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
@@ -25,7 +27,8 @@
         <i class="fas fa-ring"></i> Wedding
       </div>
       <ul class="nav-links">
-        <li><a href="#" class="active" id="nav-settings" onclick="showTab('settings')"><i class="fas fa-cog"></i> Pengaturan</a></li>
+        <li><a href="#" class="active" id="nav-settings" onclick="showTab('settings')"><i class="fas fa-cog"></i>
+            Pengaturan</a></li>
         <li><a href="#" id="nav-gallery" onclick="showTab('gallery')"><i class="fas fa-images"></i> Galeri</a></li>
         <li><a href="#" id="nav-rsvp" onclick="showTab('rsvp')"><i class="fas fa-users"></i> Data RSVP</a></li>
       </ul>
@@ -36,23 +39,23 @@
 
     <!-- Main Content -->
     <main class="main-content">
-      
+
       <div class="topbar">
         <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
         <div style="font-weight:600; color:var(--primary-color);">Dashboard Admin</div>
       </div>
 
       <div class="dashboard-container">
-        
+
         <!-- Settings Tab -->
         <section id="settings-tab" class="tab-content active">
           <form id="settings-form" onsubmit="saveSettings(event)">
             <div class="dashboard-grid">
-              
+
               <!-- Mempelai Card -->
               <div class="card">
                 <div class="card-header"><i class="fas fa-heart"></i> Data Mempelai</div>
-                
+
                 <div class="floating-group">
                   <input type="text" id="BrideName" class="floating-input" placeholder=" " required>
                   <label class="floating-label">Nama Pengantin Wanita</label>
@@ -61,7 +64,7 @@
                   <textarea id="BrideDesc" class="floating-input" placeholder=" " rows="2"></textarea>
                   <label class="floating-label">Deskripsi Wanita (cth: Putri dari...)</label>
                 </div>
-                
+
                 <div class="floating-group">
                   <input type="text" id="GroomName" class="floating-input" placeholder=" " required>
                   <label class="floating-label">Nama Pengantin Pria</label>
@@ -70,7 +73,7 @@
                   <textarea id="GroomDesc" class="floating-input" placeholder=" " rows="2"></textarea>
                   <label class="floating-label">Deskripsi Pria</label>
                 </div>
-                
+
                 <div class="floating-group">
                   <textarea id="Greeting" class="floating-input" placeholder=" " rows="3"></textarea>
                   <label class="floating-label">Teks Sambutan</label>
@@ -80,7 +83,7 @@
               <!-- Jadwal & Lokasi Card -->
               <div class="card">
                 <div class="card-header"><i class="fas fa-calendar-alt"></i> Jadwal & Lokasi</div>
-                
+
                 <div class="floating-group">
                   <input type="datetime-local" id="AkadDate" class="floating-input" placeholder=" " required>
                   <label class="floating-label">Waktu Akad</label>
@@ -96,29 +99,52 @@
                 <div class="file-upload-wrapper">
                   <label>Upload Denah Lokasi Baru (Opsional)</label>
                   <input type="file" id="MapImageFile" accept="image/*" onchange="handleMapUpload(this)">
-                  <span id="map-existing-status" style="display:block; margin-top:5px; font-size:0.85rem; color:#555;"></span>
+                  <span id="map-existing-status"
+                    style="display:block; margin-top:5px; font-size:0.85rem; color:#555;"></span>
                 </div>
-                <div class="floating-group" style="margin-top: 10px;">
-                  <input type="url" id="MusicUrl" class="floating-input" placeholder=" " required>
-                  <label class="floating-label">URL Musik (.mp3)</label>
+                <div class="music-toggle-container"
+                  style="margin-top: 25px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                  <div style="font-weight: 600; color: var(--primary-color); margin-bottom: 10px;"><i
+                      class="fas fa-music"></i> Pengaturan Musik Latar</div>
+
+                  <div class="radio-group" style="margin-bottom: 15px; display: flex; gap: 20px;">
+                    <label class="radio-label"><input type="radio" name="musicType" value="url" checked
+                        onchange="toggleMusicInput()"> <span>Gunakan Link</span></label>
+                    <label class="radio-label"><input type="radio" name="musicType" value="upload"
+                        onchange="toggleMusicInput()"> <span>Upload MP3</span></label>
+                  </div>
+
+                  <div id="music-url-group" class="floating-group">
+                    <input type="url" id="MusicUrl" class="floating-input" placeholder=" ">
+                    <label class="floating-label">URL Musik (.mp3)</label>
+                  </div>
+
+                  <div id="music-upload-group" class="file-upload-wrapper" style="display: none;">
+                    <label>Pilih File Musik (Maks 5MB)</label>
+                    <input type="file" id="MusicFile" accept="audio/mp3, audio/mpeg">
+                    <span style="display:block; margin-top:5px; font-size:0.85rem; color:#aaa;">File akan diunggah ke
+                      Google Drive secara otomatis.</span>
+                  </div>
                 </div>
               </div>
 
               <!-- Media & Amplop Card -->
               <div class="card" style="grid-column: span 1;">
                 <div class="card-header"><i class="fas fa-gift"></i> Amplop Digital</div>
-                
+
                 <div id="bank-list">
                   <!-- Dynamic Bank Accounts -->
                 </div>
-                
-                <button type="button" class="btn-secondary" onclick="addBankField()"><i class="fas fa-plus"></i> Tambah Rekening</button>
+
+                <button type="button" class="btn-secondary" onclick="addBankField()"><i class="fas fa-plus"></i> Tambah
+                  Rekening</button>
               </div>
-              
+
             </div> <!-- End Dashboard Grid -->
 
             <div style="margin-top: 20px;">
-              <button type="submit" class="btn-primary" id="btn-save-settings"><i class="fas fa-save"></i> Simpan Semua Pengaturan</button>
+              <button type="submit" class="btn-primary" id="btn-save-settings"><i class="fas fa-save"></i> Simpan Semua
+                Pengaturan</button>
             </div>
           </form>
         </section>
@@ -137,13 +163,15 @@
                   <select id="media-type" class="floating-input" style="padding-top:12px;">
                     <option value="photo">Foto</option>
                   </select>
-                  <label class="floating-label" style="top:0; font-size:0.8rem; color:var(--primary-color);">Tipe Media</label>
+                  <label class="floating-label" style="top:0; font-size:0.8rem; color:var(--primary-color);">Tipe
+                    Media</label>
                 </div>
                 <div class="file-upload-wrapper">
                   <label>Pilih File Foto</label>
                   <input type="file" id="media-file" accept="image/*" required>
                 </div>
-                <button type="submit" class="btn-primary" id="btn-add-gallery"><i class="fas fa-upload"></i> Unggah Media</button>
+                <button type="submit" class="btn-primary" id="btn-add-gallery"><i class="fas fa-upload"></i> Unggah
+                  Media</button>
               </form>
             </div>
 
@@ -194,7 +222,22 @@
     </main>
   </div>
 
+  <script src="api.js"></script>
   <script src="admin-script.js"></script>
+  <script>
+    function toggleMusicInput() {
+      const type = document.querySelector('input[name="musicType"]:checked').value;
+      if (type === 'url') {
+        document.getElementById('music-url-group').style.display = 'block';
+        document.getElementById('music-upload-group').style.display = 'none';
+        document.getElementById('MusicFile').value = ''; // clear file
+      } else {
+        document.getElementById('music-url-group').style.display = 'none';
+        document.getElementById('music-upload-group').style.display = 'block';
+        document.getElementById('MusicUrl').value = ''; // clear url
+      }
+    }
+  </script>
 </body>
-</html>
 
+</html>
