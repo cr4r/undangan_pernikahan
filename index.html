@@ -43,26 +43,54 @@
     <div class="carousel" id="hero-carousel">
       <!-- Carousel images will be inserted here by JS -->
     </div>
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
-      <h3 class="subtitle">The Wedding Of</h3>
-      <h1 class="title"><span id="bride-name-hero">P</span><br><span class="and-hero">&</span><br><span
-          id="groom-name-hero">P</span></h1>
-      <p class="date" id="hero-date">01 Desember 2026</p>
-      <button class="btn-primary" onclick="openInvitation()">Buka Undangan</button>
+    <div class="hero-overlay" style="background: rgba(0,0,0,0.65);"></div>
+
+    <!-- Ornaments -->
+    <div class="leaf-ornament top-left"
+      style="font-size: 5rem; color: var(--secondary-color); opacity: 0.7; text-shadow: 2px 2px 5px rgba(0,0,0,0.5);">
+      <i class="fab fa-envira"></i>
+    </div>
+    <div class="leaf-ornament bottom-right"
+      style="font-size: 5rem; color: var(--secondary-color); opacity: 0.7; text-shadow: -2px -2px 5px rgba(0,0,0,0.5); transform: rotate(180deg);">
+      <i class="fab fa-envira"></i>
+    </div>
+
+    <div class="hero-content" style="border: none; background: transparent; box-shadow: none;">
+      <h3 class="hero-subtitle" style="font-family: var(--font-body); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 5px; color: var(--secondary-color); margin-bottom: 20px; animation: fadeInDown 1.5s ease; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">Undangan Pernikahan</h3>
+      <!-- Circle Avatar -->
+      <div class="hero-avatar">
+        <img
+          src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
+          alt="Couple Avatar">
+      </div>
+
+      <h1 class="title script-font" style="font-size: 2rem; margin-top: 10px; line-height: 1.2;">
+        <span id="groom-name-hero">Putra</span><br>
+        <span class="and-hero"
+          style="font-size: 2.5rem; display: inline; color: var(--secondary-color); margin: 0 10px;">&</span><br>
+        <span id="bride-name-hero">Putri</span>
+      </h1>
+      <span id="hero-date" style="display:none;"></span> <!-- Hidden date to prevent JS error -->
+
+      <p class="hero-invitation-text greeting-text" id="greeting-text">
+        Tanpa mengurangi rasa hormat, kami mengundang Bapak/Ibu/Saudara/i untuk hadir dan memberikan doa restu pada
+        acara pernikahan kami. Merupakan kebahagiaan tersendiri bagi kami apabila Anda dapat menjadi bagian dari hari
+        istimewa ini.
+      </p>
+
+      <button class="btn-primary pulse-btn" onclick="openInvitation()"
+        style="border-radius: 50px; padding: 12px 35px; font-size: 1.1rem;">
+        <i class="fas fa-envelope-open-text" style="margin-right: 8px;"></i> Buka Undangan
+      </button>
     </div>
   </header>
 
   <!-- Main Content (Hidden Initially) -->
   <main id="main-content" style="display: none;">
     <!-- Greeting Section -->
-    <section class="section greeting text-center" id="greeting" data-aos="fade-up" data-aos-duration="1000">
+    <section class="section greeting text-center mobile-tab active-tab" id="greeting" data-aos="fade-up"
+      data-aos-duration="1000">
       <div class="container">
-        <h2 class="section-title">Assalamu'alaikum Warahmatullahi Wabarakatuh</h2>
-        <p class="greeting-text" id="greeting-text">
-          Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan resepsi pernikahan putra-putri
-          kami.
-        </p>
         <div class="hero-ornament top-ornament" style="margin-bottom: 20px; animation: fadeInDown 1.5s ease;">
           <h1
             style="font-family: 'Amiri', serif; font-size: 2.5rem; color: var(--secondary-color); font-weight: normal; margin: 0;">
@@ -90,7 +118,7 @@
     </section>
 
     <!-- Event Details & Countdown -->
-    <section class="section event-details" id="events" data-aos="fade-up">
+    <section class="section event-details mobile-tab" id="events" data-aos="fade-up">
       <div class="container text-center">
         <h2 class="section-title">Waktu & Tempat</h2>
 
@@ -142,7 +170,7 @@
     </div>
 
     <!-- Gallery Section -->
-    <section class="section gallery-section" id="gallery" data-aos="fade-up">
+    <section class="section gallery-section mobile-tab" id="gallery" data-aos="fade-up">
       <div class="container text-center">
         <h2 class="section-title">Galeri Kami</h2>
         <div class="gallery-grid" id="gallery-grid">
@@ -152,7 +180,7 @@
     </section>
 
     <!-- Digital Envelope (Gift) Section -->
-    <section class="section gift-section" id="gift" data-aos="fade-up">
+    <section class="section gift-section mobile-tab" id="gift" data-aos="fade-up">
       <div class="container text-center">
         <h2 class="section-title">Amplop Digital</h2>
         <p style="margin-bottom: 2rem;">Bagi keluarga dan sahabat yang ingin memberikan tanda kasih untuk kami, dapat
@@ -180,7 +208,7 @@
     </section>
 
     <!-- RSVP Section -->
-    <section class="section rsvp-section" id="rsvp" data-aos="fade-up">
+    <section class="section rsvp-section mobile-tab" id="rsvp" data-aos="fade-up">
       <div class="container">
         <h2 class="section-title text-center" style="display:block;">Kata Ucapan</h2>
         <div class="rsvp-wrapper">
@@ -230,8 +258,9 @@
   </main>
 
   <!-- Bottom Navbar for Mobile -->
-  <nav class="bottom-nav">
+  <nav class="bottom-nav" id="bottom-nav" style="display: none;">
     <ul>
+      <li><a href="#greeting" class="active"><i class="fas fa-home"></i><span>Sapaan</span></a></li>
       <li><a href="#events"><i class="fas fa-calendar-alt"></i><span>Acara</span></a></li>
       <li><a href="#gallery"><i class="fas fa-images"></i><span>Galeri</span></a></li>
       <li><a href="#gift"><i class="fas fa-gift"></i><span>Hadiah</span></a></li>

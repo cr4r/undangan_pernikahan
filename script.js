@@ -146,47 +146,68 @@ function initPage(data) {
       const urlParams = new URLSearchParams(musicUrl.split('?')[1]);
       const fileId = urlParams.get('id');
       if (fileId) {
-        window.apiRequest('getAudioData', { fileId: fileId }, function(res) {
+        window.apiRequest('getAudioData', { fileId: fileId }, function (res) {
           const audio = document.getElementById('bg-music');
           const isInvitationOpen = document.getElementById('home').style.display === 'none';
-          
+
           if (res.success && res.base64) {
             audio.src = 'data:' + res.mimeType + ';base64,' + res.base64;
           } else {
             audio.src = musicUrl;
           }
-          
+
           if (isInvitationOpen) {
             audio.play().catch(e => console.log('Audio play failed', e));
             document.getElementById('audio-btn').style.display = 'flex';
+            document.getElementById('audio-btn').innerHTML = '<i class="fas fa-pause"></i>';
+            isPlaying = true;
           }
         });
       } else {
         document.getElementById('bg-music').src = musicUrl;
       }
-    } catch(e) {
+    } catch (e) {
       document.getElementById('bg-music').src = musicUrl;
     }
   } else {
     document.getElementById('bg-music').src = musicUrl;
   }
 
-  // Gallery
+  // Gallery (Strictly 6 Images + 1 Dummy Video)
   const galleryGrid = document.getElementById('gallery-grid');
+  galleryGrid.innerHTML = '';
+  
+  let images = [];
   if (data.gallery && data.gallery.length > 0) {
-    data.gallery.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'gallery-item';
-      if (item.type === 'photo') {
-        div.innerHTML = `<img src="${item.url}" alt="Gallery Image">`;
-      } else {
-        div.innerHTML = `<video src="${item.url}" controls></video>`;
-      }
-      galleryGrid.appendChild(div);
-    });
-  } else {
-    galleryGrid.innerHTML = '<p>Galeri belum tersedia.</p>';
+    images = data.gallery.filter(item => item.type === 'photo').map(item => item.url);
   }
+  
+  // Dummy high-quality wedding images for fallback
+  const dummyImages = [
+    'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1520854221256-17451cc331bf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1469334031218-e382a71b716b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+  ];
+
+  // Fill up to 6 images
+  for (let i = 0; i < 6; i++) {
+    const src = images[i] ? images[i] : dummyImages[i];
+    galleryGrid.innerHTML += `
+      <div class="gallery-item" data-aos="zoom-in" data-aos-delay="${i * 100}">
+        <img src="${src}" alt="Gallery Image ${i+1}">
+      </div>
+    `;
+  }
+  
+  // Always append 1 Dummy Video (Cinematic Wedding Video Placeholder)
+  galleryGrid.innerHTML += `
+    <div class="gallery-item video-item" data-aos="zoom-in" data-aos-delay="600">
+      <video src="https://assets.mixkit.co/videos/preview/mixkit-wedding-couple-kissing-in-a-forest-40916-large.mp4" controls preload="metadata" poster="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"></video>
+    </div>
+  `;
 
   // RSVPs
   const wishesList = document.getElementById('wishes-list');
@@ -232,8 +253,11 @@ function initPage(data) {
 }
 
 function openInvitation() {
-  document.getElementById('home').style.display = 'none';
+  document.getElementById('home').classList.add('opened');
   document.getElementById('main-content').style.display = 'block';
+  document.getElementById('main-content').classList.add('fade-in');
+  const bottomNav = document.getElementById('bottom-nav');
+  if (bottomNav) bottomNav.style.display = 'block';
   window.scrollTo(0, 0);
 
   // Play music
@@ -241,14 +265,16 @@ function openInvitation() {
   audio.play().then(() => {
     document.getElementById('audio-btn').style.display = 'flex';
     document.getElementById('auto-scroll-btn').style.display = 'flex';
+    document.getElementById('audio-btn').innerHTML = '<i class="fas fa-pause"></i>';
+    isPlaying = true;
   }).catch(err => console.log('Audio play failed', err));
 
   // Init AOS Animations
   setTimeout(() => {
     AOS.init({
-      duration: 1000,
+      duration: 500,
       once: true,
-      offset: 100
+      offset: 50
     });
   }, 100);
 }
@@ -462,3 +488,62 @@ window.onclick = function (event) {
 
 
 
+
+// --- MOBILE SPA NAVIGATION LOGIC ---
+document.addEventListener('DOMContentLoaded', () => {
+  const navLinks = document.querySelectorAll('.bottom-nav a');
+  const tabs = document.querySelectorAll('.mobile-tab');
+  
+  // Inject luxurious floral decorations into every tab
+  tabs.forEach(tab => {
+    // Prevent double injection if it already exists
+    if (!tab.querySelector('.tab-ornament-top')) {
+      const topOrn = document.createElement('div');
+      topOrn.className = 'tab-ornament-top';
+      topOrn.innerHTML = '<i class="fab fa-envira"></i>';
+      topOrn.style = 'position: absolute; top: 15px; left: 15px; font-size: 3.5rem; color: var(--secondary-color); opacity: 0.25; z-index: -1; animation: sway 6s ease-in-out infinite alternate; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);';
+      tab.appendChild(topOrn);
+      
+      const botOrn = document.createElement('div');
+      botOrn.className = 'tab-ornament-bot';
+      botOrn.innerHTML = '<i class="fas fa-leaf"></i>';
+      botOrn.style = 'position: absolute; bottom: 80px; right: 15px; font-size: 3.5rem; color: var(--secondary-color); opacity: 0.25; z-index: -1; transform: scaleX(-1) rotate(-30deg); animation: sway 8s ease-in-out infinite alternate-reverse; text-shadow: -2px 2px 4px rgba(0,0,0,0.1);';
+      tab.appendChild(botOrn);
+      
+      // Ensure tab has position relative for absolute positioning of ornaments
+      tab.style.position = 'relative';
+    }
+  });
+
+  navLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      if (window.innerWidth <= 768) {
+        e.preventDefault(); // Stop default scroll behavior on mobile
+        
+        const targetId = this.getAttribute('href').substring(1);
+        const targetTab = document.getElementById(targetId);
+        
+        if (targetTab) {
+          // Update active nav link
+          navLinks.forEach(nav => nav.classList.remove('active'));
+          this.classList.add('active');
+          
+          // Switch tabs
+          tabs.forEach(tab => tab.classList.remove('active-tab'));
+          targetTab.classList.add('active-tab');
+          
+          // Trigger typewriter animation on the title
+          const title = targetTab.querySelector('h2.section-title, h3.section-title');
+          if (title) {
+            // Re-trigger CSS animation by cloning and replacing
+            title.classList.remove('typewriter-text');
+            void title.offsetWidth; // trigger reflow
+            title.classList.add('typewriter-text');
+          }
+          
+          window.scrollTo(0, 0);
+        }
+      }
+    });
+  });
+});
