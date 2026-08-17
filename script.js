@@ -26,7 +26,6 @@ function showToast(message, type = 'success') {
 document.addEventListener('DOMContentLoaded', () => {
   // Load data from Google Apps Script
   apiRequest('getPublicData', {}, initPage);
-  document.getElementById('year').textContent = new Date().getFullYear();
 
   // RSVP Attendance Toggle
   document.getElementById('rsvp-attendance').addEventListener('change', function () {
@@ -77,7 +76,6 @@ function initPage(data) {
   document.getElementById('groom-name').textContent = s.GroomName;
   document.getElementById('bride-desc').textContent = s.BrideDesc || 'Putri dari ...';
   document.getElementById('groom-desc').textContent = s.GroomDesc || 'Putra dari ...';
-  document.getElementById('footer-names').textContent = s.BrideName + ' & ' + s.GroomName;
 
   // Populate Dates
   const akad = new Date(s.AkadDate);
@@ -130,7 +128,10 @@ function initPage(data) {
         listContainer.innerHTML += `
             <div class="gift-thumbnail" onclick="openGiftModal(${idx}, '${icon}')">
               <div class="gift-icon-thumb" style="${b.iconUrl ? 'width:50px; height:50px; display:flex; align-items:center; justify-content:center;' : ''}">${iconHtml}</div>
-              <h4>${escapeHTML(b.bank)}</h4>
+              <div class="text-content">
+                <h4>${escapeHTML(b.bank)}</h4>
+                <p style="font-size: 0.85rem; color: #666; margin: 0; font-weight: normal;">${escapeHTML(b.name)}</p>
+              </div>
             </div>
           `;
       });
@@ -176,12 +177,12 @@ function initPage(data) {
   // Gallery (Strictly 6 Images + 1 Dummy Video)
   const galleryGrid = document.getElementById('gallery-grid');
   galleryGrid.innerHTML = '';
-  
+
   let images = [];
   if (data.gallery && data.gallery.length > 0) {
     images = data.gallery.filter(item => item.type === 'photo').map(item => item.url);
   }
-  
+
   // Dummy high-quality wedding images for fallback
   const dummyImages = [
     'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
@@ -197,11 +198,11 @@ function initPage(data) {
     const src = images[i] ? images[i] : dummyImages[i];
     galleryGrid.innerHTML += `
       <div class="gallery-item" data-aos="zoom-in" data-aos-delay="${i * 100}">
-        <img src="${src}" alt="Gallery Image ${i+1}">
+        <img src="${src}" alt="Gallery Image ${i + 1}">
       </div>
     `;
   }
-  
+
   // Always append 1 Dummy Video (Cinematic Wedding Video Placeholder)
   galleryGrid.innerHTML += `
     <div class="gallery-item video-item" data-aos="zoom-in" data-aos-delay="600">
@@ -442,11 +443,33 @@ function openGiftModal(idx, iconClass) {
   }
 
   document.getElementById('modal-gift-bank').textContent = b.bank;
-  document.getElementById('modal-gift-account').textContent = b.account;
   document.getElementById('modal-gift-holder').textContent = b.name;
-  document.getElementById('btn-copy-modal').onclick = function () {
-    copyBankAccount('modal-gift-account');
-  };
+
+  const accElement = document.getElementById('modal-gift-account');
+  const copyBtn = document.getElementById('btn-copy-modal');
+
+  // Handle QR vs Text Account
+  if (b.type === 'qr' && b.qrUrl) {
+    iconContainer.style.display = 'none'; // Hide icon for QR
+
+    // Add QR Image and Download Button
+    const downloadUrl = b.qrUrl.replace('export=view', 'export=download'); // Try to force download if it's a Drive URL
+    accElement.innerHTML = `
+      <img src="${b.qrUrl}" alt="QR Code" style="width:100%; max-width:250px; border-radius:15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 0 auto; display: block;">
+      <a href="${downloadUrl}" target="_blank" download="QRCode_${b.bank}.png" class="btn-secondary" style="display: block; width: 100%; max-width: 250px; margin: 15px auto 0; text-decoration: none; text-align: center; border-radius: 30px; font-size: 0.9rem; padding: 10px;">
+        <i class="fas fa-download"></i> Download QR
+      </a>
+    `;
+    copyBtn.style.display = 'none'; // Hide copy button for QR
+  } else {
+    iconContainer.style.display = 'block';
+    accElement.textContent = b.account;
+    copyBtn.style.display = 'inline-block';
+    copyBtn.onclick = function () {
+      copyBankAccount('modal-gift-account');
+    };
+  }
+
   document.getElementById('gift-modal').style.display = "flex";
 }
 
@@ -493,7 +516,7 @@ window.onclick = function (event) {
 document.addEventListener('DOMContentLoaded', () => {
   const navLinks = document.querySelectorAll('.bottom-nav a');
   const tabs = document.querySelectorAll('.mobile-tab');
-  
+
   // Inject luxurious floral decorations into every tab
   tabs.forEach(tab => {
     // Prevent double injection if it already exists
@@ -503,35 +526,35 @@ document.addEventListener('DOMContentLoaded', () => {
       topOrn.innerHTML = '<i class="fab fa-envira"></i>';
       topOrn.style = 'position: absolute; top: 15px; left: 15px; font-size: 3.5rem; color: var(--secondary-color); opacity: 0.25; z-index: -1; animation: sway 6s ease-in-out infinite alternate; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);';
       tab.appendChild(topOrn);
-      
+
       const botOrn = document.createElement('div');
       botOrn.className = 'tab-ornament-bot';
       botOrn.innerHTML = '<i class="fas fa-leaf"></i>';
       botOrn.style = 'position: absolute; bottom: 80px; right: 15px; font-size: 3.5rem; color: var(--secondary-color); opacity: 0.25; z-index: -1; transform: scaleX(-1) rotate(-30deg); animation: sway 8s ease-in-out infinite alternate-reverse; text-shadow: -2px 2px 4px rgba(0,0,0,0.1);';
       tab.appendChild(botOrn);
-      
+
       // Ensure tab has position relative for absolute positioning of ornaments
-      tab.style.position = 'relative';
+      // tab.style.position = 'relative';
     }
   });
 
   navLinks.forEach(link => {
-    link.addEventListener('click', function(e) {
+    link.addEventListener('click', function (e) {
       if (window.innerWidth <= 768) {
         e.preventDefault(); // Stop default scroll behavior on mobile
-        
+
         const targetId = this.getAttribute('href').substring(1);
         const targetTab = document.getElementById(targetId);
-        
+
         if (targetTab) {
           // Update active nav link
           navLinks.forEach(nav => nav.classList.remove('active'));
           this.classList.add('active');
-          
+
           // Switch tabs
           tabs.forEach(tab => tab.classList.remove('active-tab'));
           targetTab.classList.add('active-tab');
-          
+
           // Trigger typewriter animation on the title
           const title = targetTab.querySelector('h2.section-title, h3.section-title');
           if (title) {
@@ -540,7 +563,7 @@ document.addEventListener('DOMContentLoaded', () => {
             void title.offsetWidth; // trigger reflow
             title.classList.add('typewriter-text');
           }
-          
+
           window.scrollTo(0, 0);
         }
       }

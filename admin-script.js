@@ -95,15 +95,37 @@ function renderBankList() {
             <input type="text" class="floating-input bank-name-input" value="${escapeHTML(bank.bank)}" placeholder=" " required>
             <label class="floating-label">Nama Bank / E-Wallet (cth: BCA)</label>
           </div>
-          <div class="floating-group">
-            <input type="text" class="floating-input bank-acc-input" value="${escapeHTML(bank.account)}" placeholder=" " required>
-            <label class="floating-label">Nomor Rekening</label>
+          
+          <div class="floating-group" style="margin-bottom: 10px;">
+            <select class="bank-type-select" style="width:100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-family: var(--font-body);" onchange="toggleBankType(this)">
+              <option value="account" ${bank.type !== 'qr' ? 'selected' : ''}>Nomor Rekening (Teks)</option>
+              <option value="qr" ${bank.type === 'qr' ? 'selected' : ''}>QR Code (Upload)</option>
+            </select>
           </div>
+
+          <div class="bank-text-group" style="display: ${bank.type !== 'qr' ? 'block' : 'none'};">
+            <div class="floating-group">
+              <input type="text" class="floating-input bank-acc-input" value="${escapeHTML(bank.account || '')}" placeholder=" ">
+              <label class="floating-label">Nomor Rekening</label>
+            </div>
+          </div>
+
+          <div class="bank-qr-group file-upload-wrapper" style="display: ${bank.type === 'qr' ? 'block' : 'none'}; margin-bottom: 15px;">
+            <label>Upload Gambar QR / Barcode</label>
+            <input type="file" class="bank-qr-file" accept="image/*" onchange="handleBankQRUpload(this)">
+            <input type="hidden" class="bank-qr-base64" value="${bank.qrBase64 || bank.qrUrl || ''}">
+            <input type="hidden" class="bank-qr-mime" value="${bank.qrMime || ''}">
+            <input type="hidden" class="bank-existing-qr-url" value="${bank.qrUrl || ''}">
+            <div class="qr-preview-area">
+              ${bank.qrUrl ? `<img src="${bank.qrUrl}" style="height:100px; margin-top:5px; border-radius:5px; border:1px solid #ccc;"> <span style="font-size:0.8rem; color:green; display:block;"><i class="fas fa-check-circle"></i> QR Ter-upload</span>` : `<span style="font-size:0.8rem; color:#777; display:block;">Belum ada QR Code</span>`}
+            </div>
+          </div>
+
           <div class="floating-group" style="margin-bottom:0;">
             <input type="text" class="floating-input bank-holder-input" value="${escapeHTML(bank.name)}" placeholder=" " required>
             <label class="floating-label">Atas Nama</label>
           </div>
-          <div class="file-upload-wrapper" style="margin-top: 15px;">
+          <div class="bank-icon-upload-group file-upload-wrapper" style="display: ${bank.type === 'qr' ? 'none' : 'block'}; margin-top: 15px;">
             <label>Icon Rekening (Pilih Gambar)</label>
             <input type="file" class="bank-icon-file" accept="image/*" onchange="handleBankIconUpload(this)">
             <input type="hidden" class="bank-icon-base64" value="${bank.iconBase64 || bank.iconUrl || ''}">
@@ -185,13 +207,18 @@ function syncBankListFromDOM() {
   const items = document.querySelectorAll('.bank-item');
   bankAccountsList = [];
   items.forEach(item => {
+    const type = item.querySelector('.bank-type-select').value;
     bankAccountsList.push({
+      type: type,
       bank: item.querySelector('.bank-name-input').value,
-      account: item.querySelector('.bank-acc-input').value,
+      account: item.querySelector('.bank-acc-input') ? item.querySelector('.bank-acc-input').value : '',
       name: item.querySelector('.bank-holder-input').value,
       iconBase64: item.querySelector('.bank-icon-base64').value,
       iconMime: item.querySelector('.bank-icon-mime').value,
-      iconUrl: item.querySelector('.bank-icon-base64').value.startsWith('http') ? item.querySelector('.bank-icon-base64').value : undefined
+      iconUrl: item.querySelector('.bank-icon-base64').value.startsWith('http') ? item.querySelector('.bank-icon-base64').value : undefined,
+      qrBase64: item.querySelector('.bank-qr-base64') ? item.querySelector('.bank-qr-base64').value : '',
+      qrMime: item.querySelector('.bank-qr-mime') ? item.querySelector('.bank-qr-mime').value : '',
+      qrUrl: item.querySelector('.bank-qr-base64') && item.querySelector('.bank-qr-base64').value.startsWith('http') ? item.querySelector('.bank-qr-base64').value : (item.querySelector('.bank-existing-qr-url') ? item.querySelector('.bank-existing-qr-url').value : undefined)
     });
   });
 }
@@ -382,8 +409,34 @@ function escapeHTML(str) {
   );
 }
 
+function toggleBankType(selectElement) {
+  const item = selectElement.closest('.bank-item');
+  const type = selectElement.value;
+  const textInputGroup = item.querySelector('.bank-text-group');
+  const qrUploadGroup = item.querySelector('.bank-qr-group');
+  const iconUploadGroup = item.querySelector('.bank-icon-upload-group');
 
+  if (type === 'qr') {
+    textInputGroup.style.display = 'none';
+    qrUploadGroup.style.display = 'block';
+    if(iconUploadGroup) iconUploadGroup.style.display = 'none';
+  } else {
+    textInputGroup.style.display = 'block';
+    qrUploadGroup.style.display = 'none';
+    if(iconUploadGroup) iconUploadGroup.style.display = 'block';
+  }
+}
 
+function handleBankQRUpload(input) {
+  if (input.files.length > 0) {
+    const item = input.closest('.bank-item');
 
+    compressImage(input.files[0], 800, 800, 0.8, function (dataUrl) {
+      item.querySelector('.bank-qr-base64').value = dataUrl;
+      item.querySelector('.bank-qr-mime').value = input.files[0].type;
 
-
+      const previewArea = item.querySelector('.qr-preview-area');
+      previewArea.innerHTML = ```<img src="${dataUrl}" style="height:100px; margin-top:5px; border-radius:5px; border: 1px solid #ccc;"> <span style="font-size:0.8rem; color:green; display:block;"><i class="fas fa-check-circle"></i> QR Siap Disimpan</span>```;
+    });
+  }
+}

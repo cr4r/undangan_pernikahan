@@ -175,7 +175,7 @@ function saveSettings(settings, token) {
     settings.MusicUrl = uploadFileToDrive(settings.MusicFileBase64, settings.MusicFileName || 'musik_latar.mp3', settings.MusicFileMime, 'Undangan Pernikahan');
   }
 
-  // Handle Bank Icons
+  // Handle Bank Icons and QR Codes
   if (settings.BankAccounts) {
     try {
       var banks = JSON.parse(settings.BankAccounts);
@@ -185,6 +185,12 @@ function saveSettings(settings, token) {
         }
         delete banks[j].iconBase64;
         delete banks[j].iconMime;
+
+        if (banks[j].qrBase64 && banks[j].qrBase64.startsWith('data:image')) {
+          banks[j].qrUrl = uploadFileToDrive(banks[j].qrBase64, 'qr_bank_' + Utilities.getUuid().substring(0,8) + '.png', banks[j].qrMime || 'image/png', 'qr_amplop', 'Undangan Pernikahan');
+        }
+        delete banks[j].qrBase64;
+        delete banks[j].qrMime;
       }
       settings.BankAccounts = JSON.stringify(banks);
     } catch(e) {

@@ -35,6 +35,15 @@ body {
   color: var(--text-color);
   line-height: 1.6;
   overflow-x: hidden;
+  /* 1. Jadikan body sebagai Flexbox dengan tinggi minimal 100% dari layar (100vh) */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* 2. Buat konten utama meluas untuk mengisi ruang yang tersisa */
+.main-content {
+  flex: 1;
 }
 
 /* Utility Classes */
@@ -520,9 +529,9 @@ h3 {
 .rsvp-wrapper {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  gap: 1rem;
   background: white;
-  padding: 2rem;
+  padding: 1rem;
   border-radius: 15px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
@@ -617,12 +626,7 @@ h3 {
   font-style: italic;
 }
 
-/* Footer */
-.footer {
-  background: var(--primary-color);
-  color: white;
-  padding: 2rem 0;
-}
+/* Footer styles removed */
 
 @media (max-width: 768px) {
   .hero .title {
@@ -647,44 +651,61 @@ h3 {
 
 .gift-thumbnail-list {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 15px;
-  justify-content: center;
+  align-items: center;
   margin-top: 20px;
 }
 
 .gift-thumbnail {
   background: var(--bg-color);
-  border: 1px solid var(--secondary-color);
+  border: 1px solid rgba(212, 175, 55, 0.3);
   border-radius: 15px;
-  padding: 1.5rem;
-  width: 150px;
+  padding: 15px 20px;
+  width: 100%;
+  max-width: 350px;
   cursor: pointer;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  text-align: left;
 }
 
 .gift-thumbnail:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(212, 175, 55, 0.2);
+  border-color: var(--secondary-color);
 }
 
 .gift-icon-thumb {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   color: var(--secondary-color);
-  margin-bottom: 10px;
+  margin-bottom: 0;
+  margin-right: 20px;
+  flex-shrink: 0;
+  width: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.gift-thumbnail>div:not(.gift-icon-thumb) {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .gift-thumbnail h4 {
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   color: var(--primary-color);
-  text-transform: uppercase;
   font-weight: 700;
-  margin: 0;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Gift Modal content (Inherits .modal-content) */
@@ -801,16 +822,18 @@ h3 {
 /* Modern Guestbook Messages - Refactored for Luxury and Anti-Clipping */
 .modern-wish {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   background: #ffffff;
-  padding: 1.2rem;
+  padding: 0.5rem;
   border-radius: 15px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
-  margin-bottom: 1.2rem;
   border: 1px solid rgba(212, 175, 55, 0.2);
-  border-left: 5px solid var(--secondary-color);
+  border-left: 3px solid var(--secondary-color);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  overflow: hidden; /* Prevent clipping */
+  overflow: hidden;
+  /* Prevent clipping */
+  flex-shrink: 0;
+  /* Prevent flex container from squishing the card */
 }
 
 .modern-wish:hover {
@@ -830,12 +853,13 @@ h3 {
   font-weight: bold;
   font-size: 1.1rem;
   flex-shrink: 0;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .wish-content {
   flex: 1;
-  min-width: 0; /* Critical for flex text truncation/wrapping */
+  min-width: 0;
+  /* Critical for flex text truncation/wrapping */
 }
 
 .wish-content h4 {
@@ -845,7 +869,8 @@ h3 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap; /* Allows badge to wrap on tiny screens */
+  flex-wrap: wrap;
+  /* Allows badge to wrap on tiny screens */
   gap: 5px;
 }
 
@@ -873,7 +898,7 @@ h3 {
 .wish-date {
   font-size: 0.75rem;
   color: #999;
-  margin-bottom: 8px;
+  margin-bottom: 3px;
   font-family: var(--font-body);
 }
 
@@ -882,11 +907,13 @@ h3 {
   color: #444;
   line-height: 1.6;
   background: #fbfbfb;
-  padding: 12px;
-  border-radius: 8px;
+  padding: 5px;
+  border-radius: 10px;
   position: relative;
-  border-left: 2px solid var(--secondary-color);
-  word-wrap: break-word; /* Prevent text overflow */
+  border-left: 1px solid var(--secondary-color);
+  border-right: 1px solid var(--secondary-color);
+  word-wrap: break-word;
+  /* Prevent text overflow */
   word-break: break-word;
   font-size: 0.95rem;
 }
@@ -1072,22 +1099,39 @@ h3 {
 
 /* --- MOBILE SPA TABBED VIEW --- */
 @media (max-width: 768px) {
+
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #main-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    /* Tambahkan padding-bottom agar footer bisa di-scroll dan tidak tertutup navbar bawah */
+    /* padding-bottom: 100px; */
+    overflow-x: hidden;
+  }
+
   .mobile-tab {
     display: none;
-    min-height: 100vh;
-    padding-top: 2rem;
-    padding-bottom: 80px;
-    /* Space for bottom nav */
+    padding-top: 1rem;
+    padding-bottom: 2rem;
   }
 
   .mobile-tab.active-tab {
     display: block;
+    /* Tampilkan tab */
+    flex: 1 0 auto;
+    /* KUNCI UTAMA: Tab ini akan meregang mengisi layar kosong dan mendorong footer ke bawah */
     animation: slideInRight 0.5s ease-out forwards;
-  }
-
-  /* Reset global padding/margins on main sections if they conflict with tab view */
-  #main-content {
-    overflow-x: hidden;
   }
 }
 

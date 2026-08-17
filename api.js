@@ -3,7 +3,7 @@
     // Decodes to: https://script.google.com/macros/s/AKfycbz6K7p1CRL_lQlyTw6jbp_CU3wjq7FRJXv1ZtBtxs4KF1NjYftk6caCZj435d_E-5s/exec
     const _0xurl = [
         '\x68\x74\x74\x70\x73\x3a\x2f\x2f\x73\x63\x72\x69\x70\x74\x2e\x67\x6f\x6f\x67\x6c\x65\x2e\x63\x6f\x6d\x2f\x6d\x61\x63\x72\x6f\x73\x2f\x73\x2f',
-        'AKfycbwR8Wmd3d_bt7pY2Y14bCAHr3cG-73MFu5d_FJQ7vDpI4hvLVHsFEN_vfQ0c47D48cB',
+        'AKfycbzr1JtqZEGaZxwblwwRmD5yG_KuNiKAnxnM8x3pPXIbfdVVoVbPEWh3cDlzz-eWGsao',
         '\x2f\x65\x78\x65\x63'
     ];
     // Decodes to: cr4r_wedding_secret_2026
