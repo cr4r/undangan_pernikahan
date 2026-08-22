@@ -202,10 +202,10 @@ function initPage(data) {
   }
 
   let musicUrl = s.MusicUrl;
-  if (musicUrl && musicUrl.includes('drive.google.com/uc')) {
+  if (musicUrl && musicUrl.includes('drive.google.com')) {
     try {
-      const urlParams = new URLSearchParams(musicUrl.split('?')[1]);
-      const fileId = urlParams.get('id');
+      const fileIdMatch = musicUrl.match(/(?:id=|file\/d\/)([a-zA-Z0-9_-]+)/);
+      const fileId = fileIdMatch ? fileIdMatch[1] : null;
       if (fileId) {
         getCachedAudio(fileId, function(cachedBase64) {
           if (cachedBase64) {
@@ -215,11 +215,16 @@ function initPage(data) {
             console.log("Audio not in cache. Fetching from network...");
             window.apiRequest('getAudioData', { fileId: fileId }, function (res) {
               if (res.success && res.base64) {
-                const fullBase64 = 'data:' + res.mimeType + ';base64,' + res.base64;
+                // Force audio MIME type if Google Drive returns generic octet-stream
+                let mime = res.mimeType;
+                if (!mime || mime === 'application/octet-stream' || !mime.startsWith('audio/')) {
+                  mime = 'audio/mpeg';
+                }
+                const fullBase64 = 'data:' + mime + ';base64,' + res.base64;
                 cacheAudio(fileId, fullBase64);
                 setAudioAndPlay(fullBase64);
               } else {
-                setAudioAndPlay(musicUrl);
+                setAudioAndPlay('https://drive.google.com/uc?export=download&id=' + fileId);
               }
             });
           }
@@ -339,14 +344,20 @@ function openInvitation() {
   if (bottomNav) bottomNav.style.display = 'block';
   window.scrollTo(0, 0);
 
+  // Display buttons regardless of audio success
+  document.getElementById('audio-btn').style.display = 'flex';
+  document.getElementById('auto-scroll-btn').style.display = 'flex';
+
   // Play music
   const audio = document.getElementById('bg-music');
   audio.play().then(() => {
-    document.getElementById('audio-btn').style.display = 'flex';
-    document.getElementById('auto-scroll-btn').style.display = 'flex';
     document.getElementById('audio-btn').innerHTML = '<i class="fas fa-pause"></i>';
     isPlaying = true;
-  }).catch(err => console.log('Audio play failed', err));
+  }).catch(err => {
+    console.log('Audio play failed', err);
+    document.getElementById('audio-btn').innerHTML = '<i class="fas fa-play"></i>';
+    isPlaying = false;
+  });
 
   // Init AOS Animations
   setTimeout(() => {
