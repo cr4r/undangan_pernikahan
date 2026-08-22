@@ -33,7 +33,7 @@ function toggleSidebar() {
   document.getElementById('sidebar-overlay').classList.toggle('show');
 }
 
-function compressImage(file, maxWidth, maxHeight, quality, callback) {
+function compressImage(file, maxWidth, maxHeight, quality, callback, forceJpeg = false) {
   if (!file.type.match(/image.*/)) {
     const reader = new FileReader();
     reader.onload = e => callback(e.target.result);
@@ -55,13 +55,24 @@ function compressImage(file, maxWidth, maxHeight, quality, callback) {
       }
       canvas.width = width; canvas.height = height;
       const ctx = canvas.getContext('2d');
+
+      const outMime = forceJpeg ? 'image/jpeg' : file.type;
+      if (forceJpeg && file.type !== 'image/jpeg') {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
+      }
       ctx.drawImage(img, 0, 0, width, height);
-      callback(canvas.toDataURL(file.type, quality));
+      callback(canvas.toDataURL(outMime, quality));
     };
   };
 }
 
 function showTab(tabId) {
+  // Ensure all modals are closed when navigating between tabs
+  document.querySelectorAll('.modal').forEach(modal => {
+    modal.style.display = 'none';
+  });
+
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.getElementById(tabId + '-tab').classList.add('active');
 
@@ -324,19 +335,16 @@ function populateGallery(data) {
   const tbody = document.getElementById('gallery-tbody');
   tbody.innerHTML = '';
   data.forEach(item => {
-    let preview = item.type === 'photo'
-      ? `<img src="${item.url}" class="preview-img">`
-      : `<video src="${item.url}" class="preview-img"></video>`;
-
+    let preview = item.type === 'video' ? `<video src="${item.url}" width="50" style="border-radius:5px;" muted></video>` : `<img src="${item.url}" width="50" style="border-radius:5px;">`;
     tbody.innerHTML += `
-        <tr>
-          <td>${preview}</td>
-          <td>${escapeHTML(item.name || '')}</td>
-          <td>
-            <button class="btn-danger" onclick="deleteGalleryItem('${item.id}')"><i class="fas fa-trash"></i> Hapus</button>
-          </td>
-        </tr>
-      `;
+      <tr>
+        <td>${preview}</td>
+        <td>${escapeHTML(item.name || '')}</td>
+        <td>
+          <button class="btn-danger" onclick="deleteGalleryItem('${item.id}')"><i class="fas fa-trash"></i> Hapus</button>
+        </td>
+      </tr>
+    `;
   });
 }
 
@@ -346,24 +354,48 @@ function addGallery(e) {
 
   const fileInput = document.getElementById('media-file');
   if (fileInput.files.length === 0) {
-    showToast("Harap pilih file gambar!", 'error');
+    showToast("Harap pilih file!", 'error');
     return;
   }
   const file = fileInput.files[0];
+  const type = document.getElementById('media-type').value;
+
+  if (type === 'video') {
+    if (file.size > 15 * 1024 * 1024) {
+      showToast("Maksimal ukuran video 15MB", "error");
+      return;
+    }
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    btn.disabled = true;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const item = {
+        name: document.getElementById('media-name').value,
+        type: 'video',
+        mimeType: file.type,
+        base64Data: event.target.result
+      };
+      apiRequest('addGalleryItem', { item: item, token: token }, (res) => { if (res.success) { showToast('Video berhasil ditambahkan!', 'success'); document.getElementById('add-gallery-form').reset(); loadData(); } btn.innerHTML = '<i class="fas fa-upload"></i> Unggah Media'; btn.disabled = false; }, (err) => { btn.innerHTML = '<i class="fas fa-upload"></i> Unggah Media'; btn.disabled = false; handleError(err); });
+    };
+    reader.readAsDataURL(file);
+    return;
+  }
 
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
   btn.disabled = true;
 
-  compressImage(file, 1000, 1000, 0.8, function (dataUrl) {
+  // Reduce size to 800x800, lower quality to 0.6, and force JPEG conversion
+  compressImage(file, 800, 800, 0.6, function (dataUrl) {
     const item = {
       name: document.getElementById('media-name').value,
-      type: document.getElementById('media-type').value,
-      mimeType: file.type,
+      type: 'photo',
+      mimeType: 'image/jpeg', // force mime to jpeg
       base64Data: dataUrl
     };
 
     apiRequest('addGalleryItem', { item: item, token: token }, (res) => { if (res.success) { showToast('Media berhasil ditambahkan!', 'success'); document.getElementById('add-gallery-form').reset(); loadData(); } btn.innerHTML = '<i class="fas fa-upload"></i> Unggah Media'; btn.disabled = false; }, (err) => { btn.innerHTML = '<i class="fas fa-upload"></i> Unggah Media'; btn.disabled = false; handleError(err); });
-  });
+  }, true);
 }
 
 function deleteGalleryItem(id) {
@@ -376,7 +408,14 @@ function deleteGalleryItem(id) {
     confirmButtonText: 'Ya, hapus!'
   }).then((result) => {
     if (result.isConfirmed) {
-      apiRequest('deleteGalleryItem', { id: id, token: token }, (res) => { if (res.success) { showToast('Media dihapus', 'success'); loadData(); } }, handleError);
+      apiRequest('deleteGalleryItem', { id: id, token: token }, (res) => {
+        if (res.success) {
+          showToast('Media dihapus', 'success');
+          loadData();
+        } else {
+          showToast('Gagal menghapus media', 'error');
+        }
+      }, handleError);
     }
   });
 }
@@ -386,6 +425,9 @@ function populateRSVP(data) {
   tbody.innerHTML = '';
   data.forEach(item => {
     const date = new Date(item.timestamp).toLocaleString('id-ID');
+    // Using unescaped string for modal parameters to avoid nested quotes issues, but escapeHTML in display
+    const safeName = item.name ? item.name.replace(/'/g, "\\'") : '';
+    const safeMsg = item.message ? item.message.replace(/'/g, "\\'") : '';
     tbody.innerHTML += `
         <tr>
           <td>${date}</td>
@@ -393,14 +435,86 @@ function populateRSVP(data) {
           <td>${item.attendance}</td>
           <td>${item.guests}</td>
           <td>${escapeHTML(item.message)}</td>
+          <td style="vertical-align: middle;">
+            <div style="display:flex; gap:8px; justify-content:center; align-items:center;">
+              <button class="btn-primary" style="padding:6px 12px; font-size:0.85rem; border-radius:6px; cursor:pointer;" onclick="openEditRsvpModal(${item.rowNum}, '${safeName}', '${item.attendance}', ${item.guests}, '${safeMsg}')" title="Edit RSVP"><i class="fas fa-edit"></i></button>
+              <button class="btn-danger" style="padding:6px 12px; font-size:0.85rem; border-radius:6px; cursor:pointer;" onclick="deleteRsvp(${item.rowNum})" title="Hapus RSVP"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
         </tr>
       `;
   });
 }
 
+function openEditRsvpModal(rowNum, name, attendance, guests, message) {
+  document.getElementById('edit-rsvp-row').value = rowNum;
+  document.getElementById('edit-rsvp-name').value = name;
+  document.getElementById('edit-rsvp-attendance').value = attendance;
+  document.getElementById('edit-rsvp-guests').value = guests;
+  document.getElementById('edit-rsvp-message').value = message;
+  document.getElementById('edit-rsvp-modal').style.display = 'flex';
+}
+
+function closeEditRsvpModal() {
+  document.getElementById('edit-rsvp-modal').style.display = 'none';
+}
+
+function submitEditRsvp(e) {
+  e.preventDefault();
+  const rowNum = document.getElementById('edit-rsvp-row').value;
+  const btn = document.getElementById('btn-edit-rsvp');
+  const data = {
+    name: document.getElementById('edit-rsvp-name').value,
+    attendance: document.getElementById('edit-rsvp-attendance').value,
+    guests: parseInt(document.getElementById('edit-rsvp-guests').value) || 0,
+    message: document.getElementById('edit-rsvp-message').value
+  };
+
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+  btn.disabled = true;
+  
+  // Close the modal immediately so the user doesn't wait staring at it
+  closeEditRsvpModal();
+  showToast('Menyimpan perubahan...', 'success');
+
+  apiRequest('editRsvp', { rowNum: rowNum, rsvpData: data, token: token }, (res) => {
+    btn.innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan';
+    btn.disabled = false;
+    if (res.success) {
+      showToast('Data RSVP berhasil diperbarui!', 'success');
+      loadData();
+    } else {
+      showToast('Gagal: ' + res.message, 'error');
+    }
+  }, (err) => {
+    btn.innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan';
+    btn.disabled = false;
+    handleError(err);
+  });
+}
+
+function deleteRsvp(rowNum) {
+  if (confirm("Apakah Anda yakin ingin menghapus data RSVP ini?")) {
+    apiRequest('deleteRsvp', { rowNum: rowNum, token: token }, (res) => {
+      if (res.success) {
+        showToast('Data RSVP berhasil dihapus!', 'success');
+        loadData();
+      } else {
+        showToast('Gagal menghapus: ' + res.message, 'error');
+      }
+    }, handleError);
+  }
+}
+
 function handleError(err) {
   showToast(err.message || 'Terjadi kesalahan. Silakan coba lagi.', 'error');
   if (err.message === 'Unauthorized') { logout(); }
+}
+
+window.onclick = function (event) {
+  if (event.target.classList.contains('modal')) {
+    event.target.style.display = "none";
+  }
 }
 
 function escapeHTML(str) {
@@ -419,11 +533,11 @@ function toggleBankType(selectElement) {
   if (type === 'qr') {
     textInputGroup.style.display = 'none';
     qrUploadGroup.style.display = 'block';
-    if(iconUploadGroup) iconUploadGroup.style.display = 'none';
+    if (iconUploadGroup) iconUploadGroup.style.display = 'none';
   } else {
     textInputGroup.style.display = 'block';
     qrUploadGroup.style.display = 'none';
-    if(iconUploadGroup) iconUploadGroup.style.display = 'block';
+    if (iconUploadGroup) iconUploadGroup.style.display = 'block';
   }
 }
 
@@ -436,7 +550,7 @@ function handleBankQRUpload(input) {
       item.querySelector('.bank-qr-mime').value = input.files[0].type;
 
       const previewArea = item.querySelector('.qr-preview-area');
-      previewArea.innerHTML = ```<img src="${dataUrl}" style="height:100px; margin-top:5px; border-radius:5px; border: 1px solid #ccc;"> <span style="font-size:0.8rem; color:green; display:block;"><i class="fas fa-check-circle"></i> QR Siap Disimpan</span>```;
+      previewArea.innerHTML = `<img src="${dataUrl}" style="height:100px; margin-top:5px; border-radius:5px; border: 1px solid #ccc;"> <span style="font-size:0.8rem; color:green; display:block;"><i class="fas fa-check-circle"></i> QR Siap Disimpan</span>`;
     });
   }
 }

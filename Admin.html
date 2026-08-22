@@ -160,14 +160,16 @@
                   <label class="floating-label">Judul / Nama Media</label>
                 </div>
                 <div class="floating-group">
-                  <select id="media-type" class="floating-input" style="padding-top:12px;">
+                  <select id="media-type" class="floating-input" style="padding-top:12px;"
+                    onchange="document.getElementById('media-file').accept = this.value === 'video' ? 'video/mp4,video/webm' : 'image/*'; document.getElementById('media-file-label').innerText = this.value === 'video' ? 'Pilih File Video (Maks 15MB)' : 'Pilih File Foto';">
                     <option value="photo">Foto</option>
+                    <option value="video">Video (Maks 15MB)</option>
                   </select>
                   <label class="floating-label" style="top:0; font-size:0.8rem; color:var(--primary-color);">Tipe
                     Media</label>
                 </div>
                 <div class="file-upload-wrapper">
-                  <label>Pilih File Foto</label>
+                  <label id="media-file-label">Pilih File Foto</label>
                   <input type="file" id="media-file" accept="image/*" required>
                 </div>
                 <button type="submit" class="btn-primary" id="btn-add-gallery"><i class="fas fa-upload"></i> Unggah
@@ -200,18 +202,19 @@
           <div class="card">
             <div class="card-header"><i class="fas fa-envelope-open-text"></i> Data RSVP & Ucapan Tamu</div>
             <div class="table-responsive">
-              <table>
+              <table class="data-table">
                 <thead>
                   <tr>
                     <th>Waktu</th>
                     <th>Nama</th>
                     <th>Kehadiran</th>
-                    <th>Jml Tamu</th>
-                    <th>Ucapan</th>
+                    <th>Tamu</th>
+                    <th>Pesan</th>
+                    <th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="rsvp-tbody">
-                  <!-- RSVP items here -->
+                  <!-- Data loaded here -->
                 </tbody>
               </table>
             </div>
@@ -220,6 +223,40 @@
 
       </div> <!-- dashboard container -->
     </main>
+  </div>
+
+  <!-- Edit RSVP Modal -->
+  <div id="edit-rsvp-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeEditRsvpModal()">&times;</span>
+      <h3><i class="fas fa-edit"></i> Edit Data RSVP</h3>
+      <form id="edit-rsvp-form" onsubmit="submitEditRsvp(event)">
+        <input type="hidden" id="edit-rsvp-row">
+        <div class="floating-group">
+          <input type="text" id="edit-rsvp-name" class="floating-input" placeholder=" " required>
+          <label class="floating-label">Nama Lengkap</label>
+        </div>
+        <div class="floating-group">
+          <select id="edit-rsvp-attendance" class="floating-input" style="padding-top:12px;">
+            <option value="Hadir">Hadir</option>
+            <option value="Tidak Hadir">Tidak Hadir</option>
+            <option value="Ragu-ragu">Ragu-ragu</option>
+          </select>
+          <label class="floating-label" style="top:0; font-size:0.8rem; color:var(--primary-color);">Konfirmasi
+            Kehadiran</label>
+        </div>
+        <div class="floating-group">
+          <input type="number" id="edit-rsvp-guests" class="floating-input" placeholder=" " min="1" max="10" required>
+          <label class="floating-label">Jumlah Tamu</label>
+        </div>
+        <div class="floating-group">
+          <textarea id="edit-rsvp-message" class="floating-input" placeholder=" " rows="3"></textarea>
+          <label class="floating-label">Pesan & Doa (Opsional)</label>
+        </div>
+        <button type="submit" class="btn-primary" id="btn-edit-rsvp" style="width:100%;"><i class="fas fa-save"></i>
+          Simpan Perubahan</button>
+      </form>
+    </div>
   </div>
 
   <script src="api.js"></script>

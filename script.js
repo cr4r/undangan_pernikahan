@@ -140,28 +140,88 @@ function initPage(data) {
     }
   }
 
-  // Audio
+  // Audio Caching Logic
+  const DB_NAME = 'UndanganDB';
+  const STORE_NAME = 'AudioStore';
+
+  function getCachedAudio(fileId, callback) {
+    try {
+      const request = indexedDB.open(DB_NAME, 1);
+      request.onupgradeneeded = function(e) {
+        let db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME);
+        }
+      };
+      request.onsuccess = function(e) {
+        let db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) return callback(null);
+        let transaction = db.transaction([STORE_NAME], 'readonly');
+        let store = transaction.objectStore(STORE_NAME);
+        let getReq = store.get(fileId);
+        getReq.onsuccess = function(e) { callback(e.target.result); };
+        getReq.onerror = function() { callback(null); };
+      };
+      request.onerror = function() { callback(null); };
+    } catch (err) {
+      callback(null);
+    }
+  }
+
+  function cacheAudio(fileId, base64Str) {
+    try {
+      const request = indexedDB.open(DB_NAME, 1);
+      request.onupgradeneeded = function(e) {
+        let db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME);
+        }
+      };
+      request.onsuccess = function(e) {
+        let db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) return;
+        let transaction = db.transaction([STORE_NAME], 'readwrite');
+        let store = transaction.objectStore(STORE_NAME);
+        store.put(base64Str, fileId);
+      };
+    } catch (err) {
+      console.error("Failed to cache audio", err);
+    }
+  }
+
+  function setAudioAndPlay(audioSrc) {
+    const audio = document.getElementById('bg-music');
+    const isInvitationOpen = document.getElementById('home').style.display === 'none';
+    audio.src = audioSrc;
+    if (isInvitationOpen) {
+      audio.play().catch(e => console.log('Audio play failed', e));
+      document.getElementById('audio-btn').style.display = 'flex';
+      document.getElementById('audio-btn').innerHTML = '<i class="fas fa-pause"></i>';
+      isPlaying = true;
+    }
+  }
+
   let musicUrl = s.MusicUrl;
   if (musicUrl && musicUrl.includes('drive.google.com/uc')) {
     try {
       const urlParams = new URLSearchParams(musicUrl.split('?')[1]);
       const fileId = urlParams.get('id');
       if (fileId) {
-        window.apiRequest('getAudioData', { fileId: fileId }, function (res) {
-          const audio = document.getElementById('bg-music');
-          const isInvitationOpen = document.getElementById('home').style.display === 'none';
-
-          if (res.success && res.base64) {
-            audio.src = 'data:' + res.mimeType + ';base64,' + res.base64;
+        getCachedAudio(fileId, function(cachedBase64) {
+          if (cachedBase64) {
+            console.log("Audio loaded from cache.");
+            setAudioAndPlay(cachedBase64);
           } else {
-            audio.src = musicUrl;
-          }
-
-          if (isInvitationOpen) {
-            audio.play().catch(e => console.log('Audio play failed', e));
-            document.getElementById('audio-btn').style.display = 'flex';
-            document.getElementById('audio-btn').innerHTML = '<i class="fas fa-pause"></i>';
-            isPlaying = true;
+            console.log("Audio not in cache. Fetching from network...");
+            window.apiRequest('getAudioData', { fileId: fileId }, function (res) {
+              if (res.success && res.base64) {
+                const fullBase64 = 'data:' + res.mimeType + ';base64,' + res.base64;
+                cacheAudio(fileId, fullBase64);
+                setAudioAndPlay(fullBase64);
+              } else {
+                setAudioAndPlay(musicUrl);
+              }
+            });
           }
         });
       } else {
@@ -174,41 +234,59 @@ function initPage(data) {
     document.getElementById('bg-music').src = musicUrl;
   }
 
-  // Gallery (Strictly 6 Images + 1 Dummy Video)
+  // Gallery Rendering (Dynamic Photos and Videos)
   const galleryGrid = document.getElementById('gallery-grid');
   galleryGrid.innerHTML = '';
 
-  let images = [];
   if (data.gallery && data.gallery.length > 0) {
-    images = data.gallery.filter(item => item.type === 'photo').map(item => item.url);
-  }
+    data.gallery.forEach((item, index) => {
+      let delay = (index % 6) * 100;
+      if (item.type === 'video') {
+        // Extract Google Drive ID to generate a thumbnail and a preview player
+        const fileIdMatch = item.url.match(/[?&]id=([^&]+)/);
+        const fileId = fileIdMatch ? fileIdMatch[1] : '';
+        const thumbUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1000';
+        
+        galleryGrid.innerHTML += `
+          <div class="gallery-item video-item" data-aos="zoom-in" data-aos-delay="${delay}">
+            <img src="${thumbUrl}" alt="Video Thumbnail" onclick="openModal('${fileId}', 'video')" style="width:100%; height:100%; object-fit:cover; border-radius:15px; cursor:pointer;">
+            <div class="play-icon" onclick="openModal('${fileId}', 'video')" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:rgba(255,255,255,0.9); font-size:4rem; cursor:pointer; pointer-events:none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));"><i class="fas fa-play-circle"></i></div>
+          </div>
+        `;
+      } else {
+        // Render photo
+        galleryGrid.innerHTML += `
+          <div class="gallery-item" data-aos="zoom-in" data-aos-delay="${delay}">
+            <img src="${item.url}" alt="${escapeHTML(item.name || 'Gallery')}" onclick="openModal('${item.url}', 'photo')">
+          </div>
+        `;
+      }
+    });
+  } else {
+    // Dummy high-quality wedding images & video for fallback if empty
+    const dummyImages = [
+      'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1520854221256-17451cc331bf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1469334031218-e382a71b716b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+    ];
 
-  // Dummy high-quality wedding images for fallback
-  const dummyImages = [
-    'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1520854221256-17451cc331bf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1469334031218-e382a71b716b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-  ];
+    for (let i = 0; i < 6; i++) {
+      galleryGrid.innerHTML += `
+        <div class="gallery-item" data-aos="zoom-in" data-aos-delay="${i * 100}">
+          <img src="${dummyImages[i]}" alt="Gallery ${i + 1}" onclick="openModal('${dummyImages[i]}', 'photo')">
+        </div>
+      `;
+    }
 
-  // Fill up to 6 images
-  for (let i = 0; i < 6; i++) {
-    const src = images[i] ? images[i] : dummyImages[i];
     galleryGrid.innerHTML += `
-      <div class="gallery-item" data-aos="zoom-in" data-aos-delay="${i * 100}">
-        <img src="${src}" alt="Gallery Image ${i + 1}">
+      <div class="gallery-item video-item" data-aos="zoom-in" data-aos-delay="600">
+        <video src="https://assets.mixkit.co/videos/preview/mixkit-wedding-couple-kissing-in-a-forest-40916-large.mp4" controls preload="metadata" poster="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" style="width:100%; height:100%; object-fit:cover; border-radius:15px;"></video>
       </div>
     `;
   }
-
-  // Always append 1 Dummy Video (Cinematic Wedding Video Placeholder)
-  galleryGrid.innerHTML += `
-    <div class="gallery-item video-item" data-aos="zoom-in" data-aos-delay="600">
-      <video src="https://assets.mixkit.co/videos/preview/mixkit-wedding-couple-kissing-in-a-forest-40916-large.mp4" controls preload="metadata" poster="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"></video>
-    </div>
-  `;
 
   // RSVPs
   const wishesList = document.getElementById('wishes-list');
@@ -506,7 +584,31 @@ function escapeHTML(str) {
 window.onclick = function (event) {
   if (event.target.classList.contains('modal')) {
     event.target.style.display = "none";
+    if (event.target.id === 'gallery-modal') {
+      document.getElementById('gallery-modal-content').innerHTML = ''; // Stop video
+    }
   }
+}
+
+// Gallery Modal Functions
+function openModal(url, type) {
+  const modal = document.getElementById('gallery-modal');
+  const content = document.getElementById('gallery-modal-content');
+  
+  if (type === 'video') {
+    // url is fileId
+    content.innerHTML = `<iframe src="https://drive.google.com/file/d/${url}/preview" width="90%" height="80%" style="border-radius:10px; max-width:800px; background:black;" frameborder="0" allowfullscreen allow="autoplay"></iframe>`;
+  } else {
+    // url is image url
+    content.innerHTML = `<img src="${url}" style="max-width:90%; max-height:80vh; border-radius:10px; object-fit:contain; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">`;
+  }
+  
+  modal.style.display = 'flex';
+}
+
+function closeGalleryModal() {
+  document.getElementById('gallery-modal').style.display = 'none';
+  document.getElementById('gallery-modal-content').innerHTML = ''; // Stop video playback
 }
 
 

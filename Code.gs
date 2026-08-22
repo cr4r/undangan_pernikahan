@@ -59,6 +59,9 @@ function handleApiRequest(data) {
     } else if (action === 'deleteRsvp') {
       var res = deleteRsvp(data.rowNum, data.token);
       responseData = {result: res};
+    } else if (action === 'editRsvp') {
+      var res = editRsvp(data.rowNum, data.rsvpData, data.token);
+      responseData = {result: res};
     } else {
       throw new Error('Action not found');
     }
@@ -261,12 +264,39 @@ function deleteGalleryItem(id, token) {
   var sheet = ss.getSheetByName('Gallery');
   var data = sheet.getDataRange().getValues();
   for (var i = 1; i < data.length; i++) {
-    if (data[i][0] == id) {
+    if (String(data[i][0]).trim() === String(id).trim()) {
       sheet.deleteRow(i + 1);
       return { success: true };
     }
   }
   return { success: false };
+}
+
+function deleteRsvp(rowNum, token) {
+  if (!verifyToken(token)) throw new Error('Unauthorized');
+  var ss = getDb();
+  var sheet = ss.getSheetByName('RSVP');
+  var lastRow = sheet.getLastRow();
+  if (rowNum >= 2 && rowNum <= lastRow) {
+    sheet.deleteRow(rowNum);
+    return { success: true };
+  }
+  return { success: false, message: 'Row not found' };
+}
+
+function editRsvp(rowNum, dataObj, token) {
+  if (!verifyToken(token)) throw new Error('Unauthorized');
+  var ss = getDb();
+  var sheet = ss.getSheetByName('RSVP');
+  var lastRow = sheet.getLastRow();
+  if (rowNum >= 2 && rowNum <= lastRow) {
+    if (dataObj.name !== undefined) sheet.getRange(rowNum, 2).setValue(dataObj.name);
+    if (dataObj.attendance !== undefined) sheet.getRange(rowNum, 3).setValue(dataObj.attendance);
+    if (dataObj.guests !== undefined) sheet.getRange(rowNum, 4).setValue(dataObj.guests);
+    if (dataObj.message !== undefined) sheet.getRange(rowNum, 5).setValue(dataObj.message);
+    return { success: true };
+  }
+  return { success: false, message: 'Row not found' };
 }
 
 function saveRSVP(data) {
@@ -283,17 +313,18 @@ function getRSVPs(token) {
   var sheet = ss.getSheetByName('RSVP');
   var data = sheet.getDataRange().getValues();
   var rsvps = [];
-  for (var i = 1; i < data.length; i++) {
-    var ts = data[i][0];
-    if (ts instanceof Date) ts = ts.toISOString();
-    rsvps.push({
-      timestamp: ts,
-      name: data[i][1],
-      attendance: data[i][2],
-      guests: data[i][3],
-      message: data[i][4]
-    });
-  }
+    for (var i = 1; i < data.length; i++) {
+      var ts = data[i][0];
+      if (ts instanceof Date) ts = ts.toISOString();
+      rsvps.push({
+        rowNum: i + 1,
+        timestamp: ts,
+        name: data[i][1],
+        attendance: data[i][2],
+        guests: data[i][3],
+        message: data[i][4]
+      });
+    }
   return rsvps;
 }
 
@@ -351,11 +382,11 @@ function uploadFileToDrive(base64Data, filename, mimeType, folderName, parentFol
   var file = folder.createFile(blob);
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   
-  if (mimeType.indexOf('audio/') > -1) {
+  if (mimeType.indexOf('audio/') > -1 || mimeType.indexOf('video/') > -1) {
     return 'https://drive.google.com/uc?export=download&confirm=t&id=' + file.getId();
   }
   
-  // Return the direct view URL
+  // Return the direct view URL for images
   return 'https://drive.google.com/thumbnail?id=' + file.getId() + '&sz=w1000';
 }
 
