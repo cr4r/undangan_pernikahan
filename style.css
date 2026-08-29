@@ -62,7 +62,7 @@ body {
 .container {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0px 20px 60px 20px;
 }
 
 /* Buttons */
@@ -204,17 +204,19 @@ h3 {
 .auto-scroll-btn {
   position: fixed;
   right: 20px;
-  background-color: var(--primary-color);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: var(--secondary-color);
-  border: 2px solid var(--secondary-color);
-  width: 50px;
-  height: 50px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   cursor: pointer;
   z-index: 1000;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -225,17 +227,20 @@ h3 {
 }
 
 .auto-scroll-btn {
-  bottom: 80px;
+  bottom: 75px;
 }
 
 .audio-btn:hover,
 .auto-scroll-btn:hover {
   transform: scale(1.1);
+  background: rgba(212, 175, 55, 0.25);
+  border-color: var(--secondary-color);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
 }
 
 @keyframes pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7);
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4);
   }
 
   70% {
@@ -247,13 +252,21 @@ h3 {
   }
 }
 
+@keyframes scrollBounce {
+  0%, 100% { transform: translateY(-2px); }
+  50% { transform: translateY(2px); }
+}
+.scroll-anim {
+  animation: scrollBounce 1.5s infinite ease-in-out;
+}
+
 @media (max-width: 768px) {
   .audio-btn {
     bottom: 80px;
   }
 
   .auto-scroll-btn {
-    bottom: 140px;
+    bottom: 135px;
   }
 }
 
@@ -1099,12 +1112,6 @@ h3 {
 
 /* --- MOBILE SPA TABBED VIEW --- */
 @media (max-width: 768px) {
-
-  html,
-  body {
-    height: 100%;
-    margin: 0;
-  }
 
   body {
     display: flex;

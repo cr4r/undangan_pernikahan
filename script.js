@@ -147,22 +147,22 @@ function initPage(data) {
   function getCachedAudio(fileId, callback) {
     try {
       const request = indexedDB.open(DB_NAME, 1);
-      request.onupgradeneeded = function(e) {
+      request.onupgradeneeded = function (e) {
         let db = e.target.result;
         if (!db.objectStoreNames.contains(STORE_NAME)) {
           db.createObjectStore(STORE_NAME);
         }
       };
-      request.onsuccess = function(e) {
+      request.onsuccess = function (e) {
         let db = e.target.result;
         if (!db.objectStoreNames.contains(STORE_NAME)) return callback(null);
         let transaction = db.transaction([STORE_NAME], 'readonly');
         let store = transaction.objectStore(STORE_NAME);
         let getReq = store.get(fileId);
-        getReq.onsuccess = function(e) { callback(e.target.result); };
-        getReq.onerror = function() { callback(null); };
+        getReq.onsuccess = function (e) { callback(e.target.result); };
+        getReq.onerror = function () { callback(null); };
       };
-      request.onerror = function() { callback(null); };
+      request.onerror = function () { callback(null); };
     } catch (err) {
       callback(null);
     }
@@ -171,13 +171,13 @@ function initPage(data) {
   function cacheAudio(fileId, base64Str) {
     try {
       const request = indexedDB.open(DB_NAME, 1);
-      request.onupgradeneeded = function(e) {
+      request.onupgradeneeded = function (e) {
         let db = e.target.result;
         if (!db.objectStoreNames.contains(STORE_NAME)) {
           db.createObjectStore(STORE_NAME);
         }
       };
-      request.onsuccess = function(e) {
+      request.onsuccess = function (e) {
         let db = e.target.result;
         if (!db.objectStoreNames.contains(STORE_NAME)) return;
         let transaction = db.transaction([STORE_NAME], 'readwrite');
@@ -196,7 +196,7 @@ function initPage(data) {
     if (isInvitationOpen) {
       audio.play().catch(e => console.log('Audio play failed', e));
       document.getElementById('audio-btn').style.display = 'flex';
-      document.getElementById('audio-btn').innerHTML = '<i class="fas fa-pause"></i>';
+      document.getElementById('audio-btn').innerHTML = '<i class="fas fa-compact-disc fa-spin"></i>';
       isPlaying = true;
     }
   }
@@ -207,7 +207,7 @@ function initPage(data) {
       const fileIdMatch = musicUrl.match(/(?:id=|file\/d\/)([a-zA-Z0-9_-]+)/);
       const fileId = fileIdMatch ? fileIdMatch[1] : null;
       if (fileId) {
-        getCachedAudio(fileId, function(cachedBase64) {
+        getCachedAudio(fileId, function (cachedBase64) {
           if (cachedBase64) {
             console.log("Audio loaded from cache.");
             setAudioAndPlay(cachedBase64);
@@ -251,7 +251,7 @@ function initPage(data) {
         const fileIdMatch = item.url.match(/[?&]id=([^&]+)/);
         const fileId = fileIdMatch ? fileIdMatch[1] : '';
         const thumbUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1000';
-        
+
         galleryGrid.innerHTML += `
           <div class="gallery-item video-item" data-aos="zoom-in" data-aos-delay="${delay}">
             <img src="${thumbUrl}" alt="Video Thumbnail" onclick="openModal('${fileId}', 'video')" style="width:100%; height:100%; object-fit:cover; border-radius:15px; cursor:pointer;">
@@ -351,11 +351,11 @@ function openInvitation() {
   // Play music
   const audio = document.getElementById('bg-music');
   audio.play().then(() => {
-    document.getElementById('audio-btn').innerHTML = '<i class="fas fa-pause"></i>';
+    document.getElementById('audio-btn').innerHTML = '<i class="fas fa-compact-disc fa-spin"></i>';
     isPlaying = true;
   }).catch(err => {
     console.log('Audio play failed', err);
-    document.getElementById('audio-btn').innerHTML = '<i class="fas fa-play"></i>';
+    document.getElementById('audio-btn').innerHTML = '<i class="fas fa-volume-mute"></i>';
     isPlaying = false;
   });
 
@@ -374,16 +374,17 @@ function toggleAudio() {
   const btn = document.getElementById('audio-btn');
   if (isPlaying) {
     audio.pause();
-    btn.innerHTML = '<i class="fas fa-music"></i>';
+    btn.innerHTML = '<i class="fas fa-volume-mute"></i>';
   } else {
     audio.play();
-    btn.innerHTML = '<i class="fas fa-pause"></i>';
+    btn.innerHTML = '<i class="fas fa-compact-disc fa-spin"></i>';
   }
   isPlaying = !isPlaying;
 }
 
 // Auto Scroll Feature
 let autoScrollInterval = null;
+let autoScrollTimeout = null;
 let isAutoScrolling = false;
 
 function toggleAutoScroll() {
@@ -393,21 +394,84 @@ function toggleAutoScroll() {
 
 function startAutoScroll() {
   isAutoScrolling = true;
-  document.getElementById('auto-scroll-btn').innerHTML = '<i class="fas fa-pause"></i>';
+  const btn = document.getElementById('auto-scroll-btn');
+  if (btn) btn.innerHTML = '<i class="fas fa-chevron-down scroll-anim"></i>';
+
   autoScrollInterval = setInterval(() => {
+    // 1. Scroll jalan perlahan dari atas ke bawah (Kode Kesatu)
     window.scrollBy(0, 1);
-    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 2) {
+
+    // 2. Deteksi apakah sudah mentok paling bawah (Kode Kesatu)
+    let isBottom = false;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+    if (window.innerWidth <= 768) {
+      const activeTab = document.querySelector('.mobile-tab.active-tab');
+      if (activeTab) {
+        const rect = activeTab.getBoundingClientRect();
+        isBottom = Math.ceil(rect.bottom) <= viewportHeight + 10;
+      }
+    } else {
+      const mainContent = document.getElementById('main-content') || document.body;
+      const rect = mainContent.getBoundingClientRect();
+      isBottom = Math.ceil(rect.bottom) <= viewportHeight + 10;
+    }
+
+    if (isBottom) {
       stopAutoScroll();
+
+      // 3. Logika Pindah Tab (Kode Kedua)
+      if (window.innerWidth <= 768) {
+        isAutoScrolling = true;
+        if (btn) btn.innerHTML = '<i class="fas fa-chevron-down scroll-anim"></i>';
+
+        // Jeda 3.5 detik untuk baca teks paling bawah
+        autoScrollTimeout = setTimeout(() => {
+          const tabs = ['greeting', 'events', 'gallery', 'gift', 'rsvp'];
+          const activeLink = document.querySelector('.bottom-nav a.active');
+
+          if (activeLink) {
+            const currentHref = activeLink.getAttribute('href').substring(1);
+            const currentIndex = tabs.indexOf(currentHref);
+
+            if (currentIndex !== -1 && currentIndex < tabs.length - 1) {
+              const nextTabId = tabs[currentIndex + 1];
+              const nextLink = document.querySelector(`.bottom-nav a[href="#${nextTabId}"]`);
+
+              if (nextLink) {
+                nextLink.click();
+
+                // PENTING: Kembalikan layar ke paling atas di tab yang baru!
+                window.scrollTo(0, 0);
+
+                // Jeda 2 detik sebelum mulai jalan lagi di tab baru
+                autoScrollTimeout = setTimeout(() => {
+                  startAutoScroll();
+                }, 2000);
+              }
+            } else {
+              // Sudah mentok di tab terakhir (RSVP)
+              stopAutoScroll();
+            }
+          }
+        }, 3500);
+      }
     }
   }, 25);
 }
 
 function stopAutoScroll() {
   isAutoScrolling = false;
-  document.getElementById('auto-scroll-btn').innerHTML = '<i class="fas fa-chevron-down"></i>';
+  const btn = document.getElementById('auto-scroll-btn');
+  if (btn) btn.innerHTML = '<i class="fas fa-hand-paper"></i>';
+
   if (autoScrollInterval) {
     clearInterval(autoScrollInterval);
     autoScrollInterval = null;
+  }
+  if (autoScrollTimeout) {
+    clearTimeout(autoScrollTimeout);
+    autoScrollTimeout = null;
   }
 }
 
@@ -605,7 +669,7 @@ window.onclick = function (event) {
 function openModal(url, type) {
   const modal = document.getElementById('gallery-modal');
   const content = document.getElementById('gallery-modal-content');
-  
+
   if (type === 'video') {
     // url is fileId
     content.innerHTML = `<iframe src="https://drive.google.com/file/d/${url}/preview" width="90%" height="80%" style="border-radius:10px; max-width:800px; background:black;" frameborder="0" allowfullscreen allow="autoplay"></iframe>`;
@@ -613,7 +677,7 @@ function openModal(url, type) {
     // url is image url
     content.innerHTML = `<img src="${url}" style="max-width:90%; max-height:80vh; border-radius:10px; object-fit:contain; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">`;
   }
-  
+
   modal.style.display = 'flex';
 }
 
