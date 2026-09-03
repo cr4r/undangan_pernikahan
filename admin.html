@@ -51,7 +51,7 @@
         <section id="settings-tab" class="tab-content active">
 
           <!-- Analytics Dashboard UI -->
-          <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 30px;" id="analytics-cards">
+          <div class="dashboard-grid analytics-dashboard-grid" id="analytics-cards">
             <div class="card" style="text-align:center; padding: 20px;">
               <i class="fas fa-users" style="font-size:2rem; color:var(--primary-gold); margin-bottom:10px;"></i>
               <div style="font-size:2rem; font-weight:700; color:var(--primary-gold);" id="stat-visitors">-</div>
@@ -253,7 +253,6 @@
                     <th>Waktu</th>
                     <th>Nama</th>
                     <th>Kehadiran</th>
-                    <th>Tamu</th>
                     <th>Pesan</th>
                     <th>Aksi</th>
                   </tr>
@@ -289,10 +288,6 @@
           </select>
           <label class="floating-label" style="top:0; font-size:0.8rem; color:var(--primary-color);">Konfirmasi
             Kehadiran</label>
-        </div>
-        <div class="floating-group">
-          <input type="number" id="edit-rsvp-guests" class="floating-input" placeholder=" " min="1" max="10" required>
-          <label class="floating-label">Jumlah Tamu</label>
         </div>
         <div class="floating-group">
           <textarea id="edit-rsvp-message" class="floating-input" placeholder=" " rows="3"></textarea>

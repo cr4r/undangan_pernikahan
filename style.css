@@ -253,9 +253,17 @@ h3 {
 }
 
 @keyframes scrollBounce {
-  0%, 100% { transform: translateY(-2px); }
-  50% { transform: translateY(2px); }
+
+  0%,
+  100% {
+    transform: translateY(-2px);
+  }
+
+  50% {
+    transform: translateY(2px);
+  }
 }
+
 .scroll-anim {
   animation: scrollBounce 1.5s infinite ease-in-out;
 }
@@ -543,7 +551,7 @@ h3 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  background: white;
+  /* background: white; */
   padding: 1rem;
   border-radius: 15px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
@@ -583,8 +591,43 @@ h3 {
   border-color: var(--secondary-color);
 }
 
+.attendance-options {
+  display: flex;
+  gap: 15px;
+  margin-top: 5px;
+}
+
+.attendance-options input[type="radio"] {
+  display: none;
+}
+
+.att-btn {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #666;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.attendance-options input[type="radio"]:checked+.att-btn {
+  border-color: var(--secondary-color);
+  background: rgba(212, 175, 55, 0.1);
+  color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(212, 175, 55, 0.2);
+}
+
+.att-btn i {
+  margin-right: 5px;
+}
+
 .guestbook-container {
-  background: var(--bg-color);
+  /* background: var(--bg-color); */
   padding: 1.5rem;
   border-radius: 15px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
@@ -658,16 +701,20 @@ h3 {
 
 /* Digital Envelope (Gift) */
 .gift-section {
-  background-color: #fff;
+  /* background-color: #fff; */
   padding: 4rem 2rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .gift-thumbnail-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
   margin-top: 20px;
+  width: 100%;
 }
 
 .gift-thumbnail {
@@ -676,7 +723,6 @@ h3 {
   border-radius: 15px;
   padding: 15px 20px;
   width: 100%;
-  max-width: 350px;
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
@@ -781,17 +827,56 @@ h3 {
 .modal-close {
   position: absolute;
   top: 15px;
-  right: 20px;
-  font-size: 1.8rem;
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  font-size: 1.5rem;
   font-weight: bold;
-  color: var(--primary-color);
   cursor: pointer;
-  transition: color 0.3s;
+  transition: all 0.3s ease;
   z-index: 10;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 .modal-close:hover {
-  color: #ff0000;
+  background-color: var(--secondary-color);
+  transform: scale(1.1);
+}
+
+/* Gallery Modal Navigation */
+.gallery-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+.gallery-nav:hover {
+  background: var(--primary-color);
+  transform: translateY(-50%) scale(1.1);
+}
+.gallery-nav.prev {
+  left: 20px;
+}
+.gallery-nav.next {
+  right: 20px;
 }
 
 /* Map Image in Modal */

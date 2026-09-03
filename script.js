@@ -8,14 +8,14 @@ async function trackAnalyticsEvent(eventType, details = '') {
     const res = await fetch('https://api.ipify.org?format=json');
     const data = await res.json();
     const ip = data.ip;
-    
+
     apiRequest('recordAnalytics', {
       analyticsData: {
         type: eventType,
         ip: ip,
         details: details
       }
-    }, () => {}); // ignoring response
+    }, () => { }); // ignoring response
   } catch (error) {
     console.error('Analytics error:', error);
   }
@@ -49,16 +49,6 @@ function showToast(message, type = 'success') {
 document.addEventListener('DOMContentLoaded', () => {
   // Load data from Google Apps Script
   apiRequest('getPublicData', {}, initPage);
-
-  // RSVP Attendance Toggle
-  document.getElementById('rsvp-attendance').addEventListener('change', function () {
-    const guestsGroup = document.getElementById('guests-group');
-    if (this.value === 'Hadir') {
-      guestsGroup.style.display = 'block';
-    } else {
-      guestsGroup.style.display = 'none';
-    }
-  });
 
 
 
@@ -134,7 +124,7 @@ function initPage(data) {
       if (parsed && parsed.length > 0) {
         carouselImages = parsed;
       }
-    } catch(e) {}
+    } catch (e) { }
   }
 
   // Map Image
@@ -285,6 +275,7 @@ function initPage(data) {
   // Gallery Rendering (Dynamic Photos and Videos)
   const galleryGrid = document.getElementById('gallery-grid');
   galleryGrid.innerHTML = '';
+  window.galleryItems = [];
 
   if (data.gallery && data.gallery.length > 0) {
     data.gallery.forEach((item, index) => {
@@ -294,18 +285,22 @@ function initPage(data) {
         const fileIdMatch = item.url.match(/[?&]id=([^&]+)/);
         const fileId = fileIdMatch ? fileIdMatch[1] : '';
         const thumbUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1000';
+        window.galleryItems.push({ url: fileId, type: 'video' });
+        let i = window.galleryItems.length - 1;
 
         galleryGrid.innerHTML += `
           <div class="gallery-item video-item" data-aos="zoom-in" data-aos-delay="${delay}">
-            <img src="${thumbUrl}" alt="Video Thumbnail" onclick="openModal('${fileId}', 'video')" style="width:100%; height:100%; object-fit:cover; border-radius:15px; cursor:pointer;">
-            <div class="play-icon" onclick="openModal('${fileId}', 'video')" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:rgba(255,255,255,0.9); font-size:4rem; cursor:pointer; pointer-events:none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));"><i class="fas fa-play-circle"></i></div>
+            <img src="${thumbUrl}" alt="Video Thumbnail" onclick="openModal(${i})" style="width:100%; height:100%; object-fit:cover; border-radius:15px; cursor:pointer;">
+            <div class="play-icon" onclick="openModal(${i})" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:rgba(255,255,255,0.9); font-size:4rem; cursor:pointer; pointer-events:none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));"><i class="fas fa-play-circle"></i></div>
           </div>
         `;
       } else {
         // Render photo
+        window.galleryItems.push({ url: item.url, type: 'photo' });
+        let i = window.galleryItems.length - 1;
         galleryGrid.innerHTML += `
           <div class="gallery-item" data-aos="zoom-in" data-aos-delay="${delay}">
-            <img src="${item.url}" alt="${escapeHTML(item.name || 'Gallery')}" onclick="openModal('${item.url}', 'photo')">
+            <img src="${item.url}" alt="${escapeHTML(item.name || 'Gallery')}" onclick="openModal(${i})">
           </div>
         `;
       }
@@ -322,9 +317,11 @@ function initPage(data) {
     ];
 
     for (let i = 0; i < 6; i++) {
+      window.galleryItems.push({ url: dummyImages[i], type: 'photo' });
+      let idx = window.galleryItems.length - 1;
       galleryGrid.innerHTML += `
         <div class="gallery-item" data-aos="zoom-in" data-aos-delay="${i * 100}">
-          <img src="${dummyImages[i]}" alt="Gallery ${i + 1}" onclick="openModal('${dummyImages[i]}', 'photo')">
+          <img src="${dummyImages[i]}" alt="Gallery ${i + 1}" onclick="openModal(${idx})">
         </div>
       `;
     }
@@ -596,8 +593,7 @@ function submitRSVP(e) {
 
   const data = {
     name: document.getElementById('rsvp-name').value,
-    attendance: document.getElementById('rsvp-attendance').value,
-    guests: document.getElementById('rsvp-attendance').value === 'Hadir' ? document.getElementById('rsvp-guests').value : '0',
+    attendance: document.querySelector('input[name="rsvp-attendance"]:checked').value,
     message: document.getElementById('rsvp-message').value
   };
 
@@ -710,19 +706,39 @@ window.onclick = function (event) {
 }
 
 // Gallery Modal Functions
-function openModal(url, type) {
-  const modal = document.getElementById('gallery-modal');
-  const content = document.getElementById('gallery-modal-content');
+window.currentGalleryIndex = 0;
 
-  if (type === 'video') {
+function openModal(index) {
+  if (!window.galleryItems || window.galleryItems.length === 0) return;
+  window.currentGalleryIndex = index;
+  renderGalleryModal();
+  document.getElementById('gallery-modal').style.display = 'flex';
+}
+
+function renderGalleryModal() {
+  const content = document.getElementById('gallery-modal-content');
+  const item = window.galleryItems[window.currentGalleryIndex];
+  if (!item) return;
+
+  if (item.type === 'video') {
     // url is fileId
-    content.innerHTML = `<iframe src="https://drive.google.com/file/d/${url}/preview" width="90%" height="80%" style="border-radius:10px; max-width:800px; background:black;" frameborder="0" allowfullscreen allow="autoplay"></iframe>`;
+    content.innerHTML = `<iframe src="https://drive.google.com/file/d/${item.url}/preview" width="90%" height="80%" style="border-radius:10px; max-width:800px; background:black;" frameborder="0" allowfullscreen allow="autoplay"></iframe>`;
   } else {
     // url is image url
-    content.innerHTML = `<img src="${url}" style="max-width:90%; max-height:80vh; border-radius:10px; object-fit:contain; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">`;
+    content.innerHTML = `<img src="${item.url}" style="max-width:90%; max-height:80vh; border-radius:10px; object-fit:contain; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">`;
   }
+}
 
-  modal.style.display = 'flex';
+function prevGalleryItem() {
+  if (!window.galleryItems) return;
+  window.currentGalleryIndex = (window.currentGalleryIndex - 1 + window.galleryItems.length) % window.galleryItems.length;
+  renderGalleryModal();
+}
+
+function nextGalleryItem() {
+  if (!window.galleryItems) return;
+  window.currentGalleryIndex = (window.currentGalleryIndex + 1) % window.galleryItems.length;
+  renderGalleryModal();
 }
 
 function closeGalleryModal() {

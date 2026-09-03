@@ -451,11 +451,10 @@ function populateRSVP(data) {
         <td>${date}</td>
         <td>${escapeHTML(item.name)}</td>
         <td>${item.attendance}</td>
-        <td>${item.guests}</td>
         <td>${escapeHTML(item.message)}</td>
         <td style="vertical-align: middle;">
           <div style="display:flex; gap:8px; justify-content:center; align-items:center;">
-            <button class="btn-primary" style="padding:6px 12px; font-size:0.85rem; border-radius:6px; cursor:pointer;" onclick="openEditRsvpModal(${item.rowNum}, '${safeName}', '${item.attendance}', ${item.guests}, '${safeMsg}')" title="Edit RSVP"><i class="fas fa-edit"></i></button>
+            <button class="btn-primary" style="padding:6px 12px; font-size:0.85rem; border-radius:6px; cursor:pointer;" onclick="openEditRsvpModal(${item.rowNum}, '${safeName}', '${item.attendance}', '${safeMsg}')" title="Edit RSVP"><i class="fas fa-edit"></i></button>
             <button class="btn-danger" style="padding:6px 12px; font-size:0.85rem; border-radius:6px; cursor:pointer;" onclick="deleteRsvp(${item.rowNum})" title="Hapus RSVP"><i class="fas fa-trash"></i></button>
           </div>
         </td>
@@ -464,11 +463,10 @@ function populateRSVP(data) {
   });
 }
 
-function openEditRsvpModal(rowNum, name, attendance, guests, message) {
+function openEditRsvpModal(rowNum, name, attendance, message) {
   document.getElementById('edit-rsvp-row').value = rowNum;
   document.getElementById('edit-rsvp-name').value = name;
   document.getElementById('edit-rsvp-attendance').value = attendance;
-  document.getElementById('edit-rsvp-guests').value = guests;
   document.getElementById('edit-rsvp-message').value = message;
   document.getElementById('edit-rsvp-modal').style.display = 'flex';
 }
@@ -484,7 +482,6 @@ function submitEditRsvp(e) {
   const data = {
     name: document.getElementById('edit-rsvp-name').value,
     attendance: document.getElementById('edit-rsvp-attendance').value,
-    guests: parseInt(document.getElementById('edit-rsvp-guests').value) || 0,
     message: document.getElementById('edit-rsvp-message').value
   };
 

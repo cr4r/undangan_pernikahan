@@ -1,12 +1,9 @@
 (function (window) {
-    // --- OBFUSCATED CONFIGURATION ---
-    // Decodes to: https://script.google.com/macros/s/AKfycbz6K7p1CRL_lQlyTw6jbp_CU3wjq7FRJXv1ZtBtxs4KF1NjYftk6caCZj435d_E-5s/exec
     const _0xurl = [
         '\x68\x74\x74\x70\x73\x3a\x2f\x2f\x73\x63\x72\x69\x70\x74\x2e\x67\x6f\x6f\x67\x6c\x65\x2e\x63\x6f\x6d\x2f\x6d\x61\x63\x72\x6f\x73\x2f\x73\x2f',
-        'AKfycbyFoffGbPPmhsLzA6dF3JGjxPzoqVrGO1dgOLgf02wAyLTli_9hQZjljyh3dGtFe9YK',
+        'AKfycbyIuYUh7spp1WD1Ums5MJaXmMT25meAGy45D5EalTIqB-0dGN3ePTfFUBTiGk6SmdT2',
         '\x2f\x65\x78\x65\x63'
     ];
-    // Decodes to: cr4r_wedding_secret_2026
     const _0xkey = '\x63\x72\x34\x72\x5f\x77\x65\x64\x64\x69\x6e\x67\x5f\x73\x65\x63\x72\x65\x74\x5f\x32\x30\x32\x36';
 
     window.GAS_URL = _0xurl.join('');

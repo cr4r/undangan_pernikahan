@@ -633,6 +633,30 @@ tr:hover td {
   }
 }
 
+.analytics-dashboard-grid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+  .analytics-dashboard-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 15px !important;
+  }
+  .analytics-dashboard-grid .card {
+    padding: 15px !important;
+  }
+  .analytics-dashboard-grid .card i {
+    font-size: 1.5rem !important;
+  }
+  .analytics-dashboard-grid .card div[id^="stat-"] {
+    font-size: 1.5rem !important;
+  }
+  .analytics-dashboard-grid .card div:last-child {
+    font-size: 0.7rem !important;
+  }
+}
+
 /* Modals */
 .modal {
   display: none;

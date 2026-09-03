@@ -127,7 +127,7 @@ function setupDatabase(ss) {
   gallery.appendRow(['2', 'photo', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80', 'Contoh Foto 2']);
   
   var rsvp = ss.insertSheet('RSVP');
-  rsvp.appendRow(['Timestamp', 'Name', 'Attendance', 'Guests', 'Message']);
+  rsvp.appendRow(['Timestamp', 'Name', 'Attendance', 'Message']);
   
   var users = ss.insertSheet('Users');
   users.appendRow(['Username', 'Password', 'Role']);
@@ -317,13 +317,12 @@ function editRsvp(rowNum, dataObj, token) {
   var ss = getDb();
   var sheet = ss.getSheetByName('RSVP');
   var lastRow = sheet.getLastRow();
-  if (rowNum >= 2 && rowNum <= lastRow) {
-    if (dataObj.name !== undefined) sheet.getRange(rowNum, 2).setValue(dataObj.name);
-    if (dataObj.attendance !== undefined) sheet.getRange(rowNum, 3).setValue(dataObj.attendance);
-    if (dataObj.guests !== undefined) sheet.getRange(rowNum, 4).setValue(dataObj.guests);
-    if (dataObj.message !== undefined) sheet.getRange(rowNum, 5).setValue(dataObj.message);
-    return { success: true };
-  }
+    if (rowNum >= 2 && rowNum <= lastRow) {
+      if (dataObj.name !== undefined) sheet.getRange(rowNum, 2).setValue(dataObj.name);
+      if (dataObj.attendance !== undefined) sheet.getRange(rowNum, 3).setValue(dataObj.attendance);
+      if (dataObj.message !== undefined) sheet.getRange(rowNum, 4).setValue(dataObj.message);
+      return { success: true };
+    }
   return { success: false, message: 'Row not found' };
 }
 
@@ -331,7 +330,7 @@ function saveRSVP(data) {
   var ss = getDb();
   var sheet = ss.getSheetByName('RSVP');
   var timestamp = new Date();
-  sheet.appendRow([timestamp, data.name, data.attendance, data.guests, data.message]);
+  sheet.appendRow([timestamp, data.name, data.attendance, data.message]);
   return { success: true };
 }
 
@@ -343,17 +342,18 @@ function getRSVPs(token) {
   var rsvps = [];
     for (var i = 1; i < data.length; i++) {
       var ts = data[i][0];
-      if (ts instanceof Date) ts = ts.toISOString();
+      if (ts instanceof Date) {
+        ts = ts.toLocaleString('id-ID');
+      }
       rsvps.push({
         rowNum: i + 1,
         timestamp: ts,
         name: data[i][1],
         attendance: data[i][2],
-        guests: data[i][3],
-        message: data[i][4]
+        message: data[i][3]
       });
     }
-  return rsvps;
+  return rsvps.reverse();
 }
 
 function getPublicData() {
@@ -370,11 +370,11 @@ function getPublicRSVPs() {
   var data = sheet.getDataRange().getValues();
   var rsvps = [];
   for (var i = 1; i < data.length; i++) {
-    if (data[i][4]) { // has message
+    if (data[i][3]) { // has message
       rsvps.push({
         timestamp: data[i][0] ? new Date(data[i][0]).toISOString() : null,
         name: data[i][1],
-        message: data[i][4]
+        message: data[i][3]
       });
     }
   }

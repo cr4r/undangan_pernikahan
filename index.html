@@ -202,8 +202,12 @@
 
     <!-- Gallery Modal -->
     <div id="gallery-modal" class="modal" style="padding:0; background:rgba(0,0,0,0.9);">
-      <span class="modal-close" onclick="closeGalleryModal()" style="color:white; text-shadow:0 2px 4px rgba(0,0,0,0.5); font-size:40px; z-index:9999; right: 20px; top: 15px;">&times;</span>
-      <div id="gallery-modal-content" style="width:100%; height:100%; display:flex; justify-content:center; align-items:center;">
+      <span class="modal-close" onclick="closeGalleryModal()"
+        style="color:white; text-shadow:0 2px 4px rgba(0,0,0,0.5); font-size:40px; z-index:9999; right: 20px; top: 15px;">&times;</span>
+      <button class="gallery-nav prev" onclick="prevGalleryItem()"><i class="fas fa-chevron-left"></i></button>
+      <button class="gallery-nav next" onclick="nextGalleryItem()"><i class="fas fa-chevron-right"></i></button>
+      <div id="gallery-modal-content"
+        style="width:100%; height:100%; display:flex; justify-content:center; align-items:center;">
       </div>
     </div>
 
@@ -248,7 +252,7 @@
     <!-- RSVP Section -->
     <section class="section rsvp-section mobile-tab" id="rsvp" data-aos="fade-up">
       <div class="container">
-        <h2 class="section-title text-center" style="display:block;">Kata Ucapan</h2>
+        <h2 class="section-title text-center" style="display:block;">Ucapkan Sesuatu</h2>
         <div class="rsvp-wrapper">
           <form id="rsvp-form" onsubmit="submitRSVP(event)">
             <h3 style="margin-bottom: 1rem; color: var(--primary-color);">Kirim Ucapan</h3>
@@ -257,15 +261,18 @@
               <input type="text" id="rsvp-name" required placeholder="Masukkan nama Anda">
             </div>
             <div class="form-group">
-              <label for="rsvp-attendance">Kehadiran</label>
-              <select id="rsvp-attendance" required>
-                <option value="Hadir">Hadir</option>
-                <option value="Tidak Hadir">Tidak Hadir</option>
-              </select>
-            </div>
-            <div class="form-group" id="guests-group">
-              <label for="rsvp-guests">Jumlah Tamu</label>
-              <input type="number" id="rsvp-guests" min="1" max="10" value="1" required>
+              <label>Kehadiran</label>
+              <div class="attendance-options">
+                <input type="radio" id="att-hadir" name="rsvp-attendance" value="Hadir" required>
+                <label for="att-hadir" class="att-btn">
+                  <i class="fas fa-check-circle"></i> Hadir
+                </label>
+
+                <input type="radio" id="att-tidak" name="rsvp-attendance" value="Tidak Hadir" required>
+                <label for="att-tidak" class="att-btn">
+                  <i class="fas fa-times-circle"></i> Tidak Hadir
+                </label>
+              </div>
             </div>
             <div class="form-group">
               <label for="rsvp-message">Ucapan / Doa</label>
