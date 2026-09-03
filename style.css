@@ -62,7 +62,7 @@ body {
 .container {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 0px 20px 60px 20px;
+  padding: 20px 20px 20px 20px;
 }
 
 /* Buttons */
@@ -702,7 +702,7 @@ h3 {
 /* Digital Envelope (Gift) */
 .gift-section {
   /* background-color: #fff; */
-  padding: 4rem 2rem;
+  padding: 2rem 2rem;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -841,7 +841,7 @@ h3 {
   cursor: pointer;
   transition: all 0.3s ease;
   z-index: 10;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .modal-close:hover {
@@ -868,13 +868,16 @@ h3 {
   justify-content: center;
   transition: all 0.3s ease;
 }
+
 .gallery-nav:hover {
   background: var(--primary-color);
   transform: translateY(-50%) scale(1.1);
 }
+
 .gallery-nav.prev {
   left: 20px;
 }
+
 .gallery-nav.next {
   right: 20px;
 }
