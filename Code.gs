@@ -62,6 +62,11 @@ function handleApiRequest(data) {
     } else if (action === 'editRsvp') {
       var res = editRsvp(data.rowNum, data.rsvpData, data.token);
       responseData = {result: res};
+    } else if (action === 'recordAnalytics') {
+      var res = recordAnalytics(data.analyticsData);
+      responseData = {result: res};
+    } else if (action === 'getAnalyticsStats') {
+      responseData = getAnalyticsStats(data.token);
     } else {
       throw new Error('Action not found');
     }
@@ -170,6 +175,29 @@ function saveSettings(settings, token) {
   var sheet = ss.getSheetByName('Settings');
   var data = sheet.getDataRange().getValues();
   
+  if (settings.HeroAvatarBase64) {
+    settings.HeroAvatar = uploadFileToDrive(settings.HeroAvatarBase64, 'hero_avatar.png', settings.HeroAvatarMime || 'image/png', 'Undangan Pernikahan');
+    delete settings.HeroAvatarBase64;
+    delete settings.HeroAvatarMime;
+  }
+
+  if (settings.CarouselImagesBase64) {
+    try {
+      var images = JSON.parse(settings.CarouselImagesBase64);
+      var uploadedUrls = [];
+      for (var c = 0; c < images.length; c++) {
+        if (images[c].base64 && images[c].base64.startsWith('data:image')) {
+          var url = uploadFileToDrive(images[c].base64, 'carousel_' + c + '_' + Utilities.getUuid().substring(0,8) + '.png', images[c].mime || 'image/png', 'Carousel', 'Undangan Pernikahan');
+          uploadedUrls.push(url);
+        }
+      }
+      if (uploadedUrls.length > 0) {
+        settings.CarouselImages = JSON.stringify(uploadedUrls);
+      }
+    } catch(e) {}
+    delete settings.CarouselImagesBase64;
+  }
+
   if (settings.MapImageBase64) {
     settings.MapImage = uploadFileToDrive(settings.MapImageBase64, 'denah.png', settings.MapImageMime, 'Undangan Pernikahan');
   }
@@ -405,3 +433,93 @@ function getAudioData(fileId) {
   }
 }
 
+
+// ==========================================
+// ANALYTICS & ANTI-SPAM FIFO SYSTEM
+// ==========================================
+
+function getAnalyticsSheet() {
+  var ss = getDb();
+  var sheet = ss.getSheetByName('Analytics');
+  if (!sheet) {
+    sheet = ss.insertSheet('Analytics');
+    sheet.appendRow(['Timestamp', 'IP_Address', 'Event_Type', 'Details']);
+    sheet.getRange("A1:D1").setFontWeight("bold");
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function recordAnalytics(data) {
+  var sheet = getAnalyticsSheet();
+  var ip = data.ip || 'Unknown';
+  var eventType = data.type || 'unknown';
+  var details = data.details || '';
+  
+  var now = new Date();
+  
+  // Anti-Spam Filter: 1 action per IP per 5 minutes for the SAME eventType
+  var lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    var startRow = Math.max(2, lastRow - 100);
+    var numRows = lastRow - startRow + 1;
+    var range = sheet.getRange(startRow, 1, numRows, 3);
+    var values = range.getValues();
+    
+    for (var i = values.length - 1; i >= 0; i--) {
+      var rowTime = new Date(values[i][0]);
+      var rowIp = values[i][1];
+      var rowEvent = values[i][2];
+      
+      if (rowIp === ip && rowEvent === eventType) {
+        var diffMinutes = (now.getTime() - rowTime.getTime()) / (1000 * 60);
+        if (diffMinutes < 5) {
+          return { success: true, message: 'Ignored (Cooldown)' };
+        }
+        break;
+      }
+    }
+  }
+  
+  if (lastRow >= 2000) {
+    sheet.deleteRows(2, 100);
+  }
+  
+  sheet.appendRow([now, ip, eventType, details]);
+  return { success: true };
+}
+
+function getAnalyticsStats(token) {
+  if (!verifyToken(token)) throw new Error('Unauthorized');
+  
+  var stats = {
+    visitors: 0,
+    clicks_maps: 0,
+    clicks_bank: 0,
+    total_rsvps: 0
+  };
+  
+  var sheet = getAnalyticsSheet();
+  var lastRow = sheet.getLastRow();
+  
+  if (lastRow > 1) {
+    var data = sheet.getRange(2, 3, lastRow - 1, 1).getValues();
+    for (var i = 0; i < data.length; i++) {
+      var type = data[i][0];
+      if (type === 'page_view') stats.visitors++;
+      else if (type === 'click_maps') stats.clicks_maps++;
+      else if (type === 'click_bank') stats.clicks_bank++;
+    }
+  }
+  
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var rsvpSheet = ss.getSheetByName('RSVP');
+  if (rsvpSheet) {
+    var rsvpLastRow = rsvpSheet.getLastRow();
+    if (rsvpLastRow > 1) {
+      stats.total_rsvps = rsvpLastRow - 1;
+    }
+  }
+  
+  return stats;
+}

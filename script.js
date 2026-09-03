@@ -1,5 +1,28 @@
 // API requests are now handled by api.js
 
+// ==========================================
+// ANALYTICS TRACKING
+// ==========================================
+async function trackAnalyticsEvent(eventType, details = '') {
+  try {
+    const res = await fetch('https://api.ipify.org?format=json');
+    const data = await res.json();
+    const ip = data.ip;
+    
+    apiRequest('recordAnalytics', {
+      analyticsData: {
+        type: eventType,
+        ip: ip,
+        details: details
+      }
+    }, () => {}); // ignoring response
+  } catch (error) {
+    console.error('Analytics error:', error);
+  }
+}
+
+trackAnalyticsEvent('page_view');
+
 
 let isPlaying = false;
 let targetDate = new Date().getTime();
@@ -42,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Carousel Logic
-const carouselImages = [
+let carouselImages = [
   'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1920&q=80',
   'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1920&q=80',
   'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1920&q=80'
@@ -92,7 +115,27 @@ function initPage(data) {
   startCountdown();
 
   document.getElementById('greeting-text').textContent = s.Greeting;
-  document.getElementById('maps-link').href = s.MapsLink;
+  // Initialize map if available
+  if (s.MapsLink) {
+    document.getElementById('maps-link').href = s.MapsLink;
+    document.getElementById('maps-link').addEventListener('click', () => {
+      trackAnalyticsEvent('click_maps');
+    });
+  } // Update Hero Avatar
+  if (s.HeroAvatar) {
+    const avatarImg = document.querySelector('.hero-avatar img');
+    if (avatarImg) avatarImg.src = s.HeroAvatar;
+  }
+
+  // Update Carousel Images
+  if (s.CarouselImages) {
+    try {
+      const parsed = JSON.parse(s.CarouselImages);
+      if (parsed && parsed.length > 0) {
+        carouselImages = parsed;
+      }
+    } catch(e) {}
+  }
 
   // Map Image
   const mapContainer = document.getElementById('map-container');
@@ -288,7 +331,7 @@ function initPage(data) {
 
     galleryGrid.innerHTML += `
       <div class="gallery-item video-item" data-aos="zoom-in" data-aos-delay="600">
-        <video src="https://assets.mixkit.co/videos/preview/mixkit-wedding-couple-kissing-in-a-forest-40916-large.mp4" controls preload="metadata" poster="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" style="width:100%; height:100%; object-fit:cover; border-radius:15px;"></video>
+        <video src="" controls preload="metadata" poster="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" style="width:100%; height:100%; object-fit:cover; border-radius:15px;"></video>
       </div>
     `;
   }
@@ -578,6 +621,7 @@ function submitRSVP(e) {
 function copyBankAccount(elementId) {
   const acc = document.getElementById(elementId).textContent;
   navigator.clipboard.writeText(acc).then(() => {
+    trackAnalyticsEvent('click_bank', acc);
     showToast('Nomor Rekening Berhasil Disalin!', 'success');
   }).catch(err => {
     showToast('Gagal menyalin rekening.', 'error');

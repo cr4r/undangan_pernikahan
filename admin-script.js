@@ -93,6 +93,14 @@ function loadData() {
   apiRequest('getSettings', { token: token }, populateSettings, handleError);
   apiRequest('getGallery', {}, populateGallery);
   apiRequest('getRSVPs', { token: token }, populateRSVP);
+  apiRequest('getAnalyticsStats', { token: token }, populateAnalytics);
+}
+
+function populateAnalytics(data) {
+  document.getElementById('stat-visitors').textContent = data.visitors || 0;
+  document.getElementById('stat-maps').textContent = data.clicks_maps || 0;
+  document.getElementById('stat-bank').textContent = data.clicks_bank || 0;
+  document.getElementById('stat-rsvp').textContent = data.total_rsvps || 0;
 }
 
 function renderBankList() {
@@ -100,52 +108,52 @@ function renderBankList() {
   container.innerHTML = '';
   bankAccountsList.forEach((bank, index) => {
     container.innerHTML += `
-        <div class="bank-item" id="bank-item-${index}">
-          <button type="button" class="btn-remove-bank" onclick="removeBankField(${index})"><i class="fas fa-times-circle"></i></button>
+      <div class="bank-item" id="bank-item-${index}">
+        <button type="button" class="btn-remove-bank" onclick="removeBankField(${index})" title="Hapus Rekening"><i class="fas fa-trash-alt"></i></button>
+        <div class="floating-group">
+          <input type="text" class="floating-input bank-name-input" value="${escapeHTML(bank.bank)}" placeholder=" " required>
+          <label class="floating-label">Nama Bank / E-Wallet (cth: BCA)</label>
+        </div>
+        
+        <div class="floating-group" style="margin-bottom: 10px;">
+          <select class="bank-type-select" style="width:100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-family: var(--font-body);" onchange="toggleBankType(this)">
+            <option value="account" ${bank.type !== 'qr' ? 'selected' : ''}>Nomor Rekening (Teks)</option>
+            <option value="qr" ${bank.type === 'qr' ? 'selected' : ''}>QR Code (Upload)</option>
+          </select>
+        </div>
+
+        <div class="bank-text-group" style="display: ${bank.type !== 'qr' ? 'block' : 'none'};">
           <div class="floating-group">
-            <input type="text" class="floating-input bank-name-input" value="${escapeHTML(bank.bank)}" placeholder=" " required>
-            <label class="floating-label">Nama Bank / E-Wallet (cth: BCA)</label>
-          </div>
-          
-          <div class="floating-group" style="margin-bottom: 10px;">
-            <select class="bank-type-select" style="width:100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-family: var(--font-body);" onchange="toggleBankType(this)">
-              <option value="account" ${bank.type !== 'qr' ? 'selected' : ''}>Nomor Rekening (Teks)</option>
-              <option value="qr" ${bank.type === 'qr' ? 'selected' : ''}>QR Code (Upload)</option>
-            </select>
-          </div>
-
-          <div class="bank-text-group" style="display: ${bank.type !== 'qr' ? 'block' : 'none'};">
-            <div class="floating-group">
-              <input type="text" class="floating-input bank-acc-input" value="${escapeHTML(bank.account || '')}" placeholder=" ">
-              <label class="floating-label">Nomor Rekening</label>
-            </div>
-          </div>
-
-          <div class="bank-qr-group file-upload-wrapper" style="display: ${bank.type === 'qr' ? 'block' : 'none'}; margin-bottom: 15px;">
-            <label>Upload Gambar QR / Barcode</label>
-            <input type="file" class="bank-qr-file" accept="image/*" onchange="handleBankQRUpload(this)">
-            <input type="hidden" class="bank-qr-base64" value="${bank.qrBase64 || bank.qrUrl || ''}">
-            <input type="hidden" class="bank-qr-mime" value="${bank.qrMime || ''}">
-            <input type="hidden" class="bank-existing-qr-url" value="${bank.qrUrl || ''}">
-            <div class="qr-preview-area">
-              ${bank.qrUrl ? `<img src="${bank.qrUrl}" style="height:100px; margin-top:5px; border-radius:5px; border:1px solid #ccc;"> <span style="font-size:0.8rem; color:green; display:block;"><i class="fas fa-check-circle"></i> QR Ter-upload</span>` : `<span style="font-size:0.8rem; color:#777; display:block;">Belum ada QR Code</span>`}
-            </div>
-          </div>
-
-          <div class="floating-group" style="margin-bottom:0;">
-            <input type="text" class="floating-input bank-holder-input" value="${escapeHTML(bank.name)}" placeholder=" " required>
-            <label class="floating-label">Atas Nama</label>
-          </div>
-          <div class="bank-icon-upload-group file-upload-wrapper" style="display: ${bank.type === 'qr' ? 'none' : 'block'}; margin-top: 15px;">
-            <label>Icon Rekening (Pilih Gambar)</label>
-            <input type="file" class="bank-icon-file" accept="image/*" onchange="handleBankIconUpload(this)">
-            <input type="hidden" class="bank-icon-base64" value="${bank.iconBase64 || bank.iconUrl || ''}">
-            <input type="hidden" class="bank-icon-mime" value="${bank.iconMime || ''}">
-            <input type="hidden" class="bank-existing-url" value="${bank.iconUrl || ''}">
-            ${bank.iconUrl ? `<img src="${bank.iconUrl}" style="height:30px; margin-top:5px; border-radius:5px;"> <span style="font-size:0.8rem; color:green;"><i class="fas fa-check-circle"></i> Ter-upload</span>` : `<span style="font-size:0.8rem; color:#777;">Belum ada ikon khusus</span>`}
+            <input type="text" class="floating-input bank-acc-input" value="${escapeHTML(bank.account || '')}" placeholder=" ">
+            <label class="floating-label">Nomor Rekening</label>
           </div>
         </div>
-      `;
+
+        <div class="bank-qr-group file-upload-wrapper" style="display: ${bank.type === 'qr' ? 'block' : 'none'}; margin-bottom: 15px;">
+          <label>Upload Gambar QR / Barcode</label>
+          <input type="file" class="bank-qr-file" accept="image/*" onchange="handleBankQRUpload(this)">
+          <input type="hidden" class="bank-qr-base64" value="${bank.qrBase64 || bank.qrUrl || ''}">
+          <input type="hidden" class="bank-qr-mime" value="${bank.qrMime || ''}">
+          <input type="hidden" class="bank-existing-qr-url" value="${bank.qrUrl || ''}">
+          <div class="qr-preview-area">
+            ${bank.qrUrl ? `<img src="${bank.qrUrl}" style="height:100px; margin-top:5px; border-radius:5px; border:1px solid #ccc;"> <span style="font-size:0.8rem; color:green; display:block;"><i class="fas fa-check-circle"></i> QR Ter-upload</span>` : `<span style="font-size:0.8rem; color:#777; display:block;">Belum ada QR Code</span>`}
+          </div>
+        </div>
+
+        <div class="floating-group" style="margin-bottom:0;">
+          <input type="text" class="floating-input bank-holder-input" value="${escapeHTML(bank.name)}" placeholder=" " required>
+          <label class="floating-label">Atas Nama</label>
+        </div>
+        <div class="bank-icon-upload-group file-upload-wrapper" style="display: ${bank.type === 'qr' ? 'none' : 'block'}; margin-top: 15px;">
+          <label>Icon Rekening (Pilih Gambar)</label>
+          <input type="file" class="bank-icon-file" accept="image/*" onchange="handleBankIconUpload(this)">
+          <input type="hidden" class="bank-icon-base64" value="${bank.iconBase64 || bank.iconUrl || ''}">
+          <input type="hidden" class="bank-icon-mime" value="${bank.iconMime || ''}">
+          <input type="hidden" class="bank-existing-url" value="${bank.iconUrl || ''}">
+          ${bank.iconUrl ? `<img src="${bank.iconUrl}" style="height:30px; margin-top:5px; border-radius:5px;"> <span style="font-size:0.8rem; color:green;"><i class="fas fa-check-circle"></i> Ter-upload</span>` : `<span style="font-size:0.8rem; color:#777;">Belum ada ikon khusus</span>`}
+        </div>
+      </div>
+    `;
   });
 }
 
@@ -235,6 +243,7 @@ function syncBankListFromDOM() {
 }
 
 function populateSettings(data) {
+  window.currentSettings = data;
   document.getElementById('BrideName').value = data.BrideName || '';
   document.getElementById('BrideDesc').value = data.BrideDesc || '';
   document.getElementById('GroomName').value = data.GroomName || '';
@@ -247,10 +256,15 @@ function populateSettings(data) {
 
   const mapStatus = document.getElementById('map-existing-status');
   if (data.MapImage) {
-    mapStatus.innerHTML = `<i class="fas fa-check-circle" style="color:green;"></i> File sudah ter-upload.`;
+    mapStatus.innerHTML = `
+      <div style="margin-top: 10px; margin-bottom: 5px;">
+        <img src="${data.MapImage}" style="max-height: 100px; border-radius: 8px; border: 2px solid rgba(212,175,55,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+      </div>
+      <div><i class="fas fa-check-circle" style="color:green;"></i> File sudah ter-upload.</div>
+    `;
     mapStatus.setAttribute('data-exists', 'true');
   } else {
-    mapStatus.innerHTML = `Belum ada file ter-upload.`;
+    mapStatus.innerHTML = 'Belum ada file ter-upload.';
     mapStatus.setAttribute('data-exists', 'false');
   }
 
@@ -260,6 +274,7 @@ function populateSettings(data) {
     bankAccountsList = [];
   }
   renderBankList();
+  renderThumbnails();
 
   document.getElementById('loader').style.display = 'none';
   document.getElementById('admin-layout').style.display = 'flex';
@@ -273,6 +288,9 @@ function saveSettings(e) {
   btn.disabled = true;
 
   const data = {
+    HeroAvatarBase64: document.getElementById('HeroAvatarBase64') ? document.getElementById('HeroAvatarBase64').value : '',
+    HeroAvatarMime: document.getElementById('HeroAvatarMime') ? document.getElementById('HeroAvatarMime').value : '',
+    CarouselImagesBase64: document.getElementById('CarouselImagesBase64') ? document.getElementById('CarouselImagesBase64').value : '',
     BrideName: document.getElementById('BrideName').value,
     BrideDesc: document.getElementById('BrideDesc').value,
     GroomName: document.getElementById('GroomName').value,
@@ -337,14 +355,14 @@ function populateGallery(data) {
   data.forEach(item => {
     let preview = item.type === 'video' ? `<video src="${item.url}" width="50" style="border-radius:5px;" muted></video>` : `<img src="${item.url}" width="50" style="border-radius:5px;">`;
     tbody.innerHTML += `
-      <tr>
-        <td>${preview}</td>
-        <td>${escapeHTML(item.name || '')}</td>
-        <td>
-          <button class="btn-danger" onclick="deleteGalleryItem('${item.id}')"><i class="fas fa-trash"></i> Hapus</button>
-        </td>
-      </tr>
-    `;
+    <tr>
+      <td>${preview}</td>
+      <td>${escapeHTML(item.name || '')}</td>
+      <td>
+        <button class="btn-danger" onclick="deleteGalleryItem('${item.id}')"><i class="fas fa-trash"></i> Hapus</button>
+      </td>
+    </tr>
+  `;
   });
 }
 
@@ -369,7 +387,7 @@ function addGallery(e) {
     btn.disabled = true;
 
     const reader = new FileReader();
-    reader.onload = function(event) {
+    reader.onload = function (event) {
       const item = {
         name: document.getElementById('media-name').value,
         type: 'video',
@@ -429,20 +447,20 @@ function populateRSVP(data) {
     const safeName = item.name ? item.name.replace(/'/g, "\\'") : '';
     const safeMsg = item.message ? item.message.replace(/'/g, "\\'") : '';
     tbody.innerHTML += `
-        <tr>
-          <td>${date}</td>
-          <td>${escapeHTML(item.name)}</td>
-          <td>${item.attendance}</td>
-          <td>${item.guests}</td>
-          <td>${escapeHTML(item.message)}</td>
-          <td style="vertical-align: middle;">
-            <div style="display:flex; gap:8px; justify-content:center; align-items:center;">
-              <button class="btn-primary" style="padding:6px 12px; font-size:0.85rem; border-radius:6px; cursor:pointer;" onclick="openEditRsvpModal(${item.rowNum}, '${safeName}', '${item.attendance}', ${item.guests}, '${safeMsg}')" title="Edit RSVP"><i class="fas fa-edit"></i></button>
-              <button class="btn-danger" style="padding:6px 12px; font-size:0.85rem; border-radius:6px; cursor:pointer;" onclick="deleteRsvp(${item.rowNum})" title="Hapus RSVP"><i class="fas fa-trash"></i></button>
-            </div>
-          </td>
-        </tr>
-      `;
+      <tr>
+        <td>${date}</td>
+        <td>${escapeHTML(item.name)}</td>
+        <td>${item.attendance}</td>
+        <td>${item.guests}</td>
+        <td>${escapeHTML(item.message)}</td>
+        <td style="vertical-align: middle;">
+          <div style="display:flex; gap:8px; justify-content:center; align-items:center;">
+            <button class="btn-primary" style="padding:6px 12px; font-size:0.85rem; border-radius:6px; cursor:pointer;" onclick="openEditRsvpModal(${item.rowNum}, '${safeName}', '${item.attendance}', ${item.guests}, '${safeMsg}')" title="Edit RSVP"><i class="fas fa-edit"></i></button>
+            <button class="btn-danger" style="padding:6px 12px; font-size:0.85rem; border-radius:6px; cursor:pointer;" onclick="deleteRsvp(${item.rowNum})" title="Hapus RSVP"><i class="fas fa-trash"></i></button>
+          </div>
+        </td>
+      </tr>
+    `;
   });
 }
 
@@ -472,7 +490,7 @@ function submitEditRsvp(e) {
 
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
   btn.disabled = true;
-  
+
   // Close the modal immediately so the user doesn't wait staring at it
   closeEditRsvpModal();
   showToast('Menyimpan perubahan...', 'success');
@@ -552,5 +570,168 @@ function handleBankQRUpload(input) {
       const previewArea = item.querySelector('.qr-preview-area');
       previewArea.innerHTML = `<img src="${dataUrl}" style="height:100px; margin-top:5px; border-radius:5px; border: 1px solid #ccc;"> <span style="font-size:0.8rem; color:green; display:block;"><i class="fas fa-check-circle"></i> QR Siap Disimpan</span>`;
     });
+  }
+}
+
+function handleHeroAvatarUpload(input) {
+  if (input.files.length > 0) {
+    const doUpload = () => {
+      compressImage(input.files[0], 400, 400, 0.8, function (dataUrl) {
+        document.getElementById('HeroAvatarBase64').value = dataUrl;
+        document.getElementById('HeroAvatarMime').value = input.files[0].type;
+        showToast('Avatar siap disimpan', 'success');
+
+        // Show preview immediately
+        const preview = document.getElementById('hero-avatar-preview');
+        preview.innerHTML = `
+        <div class="thumbnail-wrapper">
+          <img src="${dataUrl}" class="thumbnail-img">
+          <button type="button" class="btn-remove-thumbnail" onclick="removeHeroAvatar()" title="Batal Upload"><i class="fas fa-times"></i></button>
+        </div>
+      `;
+        preview.style.display = 'block';
+      });
+    };
+
+    if (window.currentSettings && window.currentSettings.HeroAvatar) {
+      Swal.fire({
+        title: 'Timpa foto sebelumnya?',
+        text: "Foto profil lama akan tergantikan saat Anda menyimpan pengaturan.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, timpa!',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          doUpload();
+        } else {
+          input.value = '';
+        }
+      });
+    } else {
+      doUpload();
+    }
+  }
+}
+
+function handleCarouselUpload(input) {
+  if (input.files.length > 0) {
+    const statusLabel = document.getElementById('carousel-status');
+    statusLabel.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses ' + input.files.length + ' gambar...';
+
+    let base64Array = [];
+    let promises = [];
+
+    for (let i = 0; i < input.files.length; i++) {
+      let file = input.files[i];
+      let p = new Promise((resolve) => {
+        compressImage(file, 1920, 1920, 0.8, function (dataUrl) {
+          base64Array.push({
+            base64: dataUrl,
+            mime: file.type
+          });
+          resolve();
+        });
+      });
+      promises.push(p);
+    }
+
+    Promise.all(promises).then(() => {
+      document.getElementById('CarouselImagesBase64').value = JSON.stringify(base64Array);
+      statusLabel.innerHTML = '<span style="color:green;"><i class="fas fa-check-circle"></i> ' + base64Array.length + ' gambar siap disimpan</span>';
+
+      // Update preview
+      const preview = document.getElementById('carousel-preview');
+      preview.innerHTML = '';
+      base64Array.forEach((item, idx) => {
+        preview.innerHTML += `
+        <div class="thumbnail-wrapper">
+          <img src="${item.base64}" class="thumbnail-img">
+        </div>
+      `;
+      });
+      preview.style.display = 'flex';
+    });
+  }
+}
+
+// Thumbnails Logic
+function renderThumbnails() {
+  const settings = window.currentSettings;
+  if (!settings) return;
+
+  if (settings.HeroAvatar) {
+    const avatarPreview = document.getElementById('hero-avatar-preview');
+    avatarPreview.innerHTML = `
+    <div class="thumbnail-wrapper">
+      <img src="${settings.HeroAvatar}" class="thumbnail-img">
+      <button type="button" class="btn-remove-thumbnail" onclick="removeHeroAvatar()" title="Hapus Foto"><i class="fas fa-times"></i></button>
+    </div>
+  `;
+    avatarPreview.style.display = 'block';
+  }
+
+  if (settings.CarouselImages) {
+    try {
+      const images = JSON.parse(settings.CarouselImages);
+      if (images && images.length > 0) {
+        const carouselPreview = document.getElementById('carousel-preview');
+        carouselPreview.innerHTML = '';
+        images.forEach((url, idx) => {
+          carouselPreview.innerHTML += `
+          <div class="thumbnail-wrapper">
+            <img src="${url}" class="thumbnail-img">
+            <button type="button" class="btn-remove-thumbnail" onclick="removeCarouselImage(${idx})" title="Hapus Gambar"><i class="fas fa-times"></i></button>
+          </div>
+        `;
+        });
+        carouselPreview.style.display = 'flex';
+      }
+    } catch (e) { }
+  }
+}
+
+function removeHeroAvatar() {
+  Swal.fire({
+    title: 'Hapus Foto?',
+    text: "Foto profil akan dihapus dan kembali menggunakan foto bawaan.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, hapus!',
+    cancelButtonText: 'Batal'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      document.getElementById('HeroAvatarBase64').value = 'DELETE'; // Flag to backend
+      document.getElementById('hero-avatar-preview').style.display = 'none';
+      document.getElementById('HeroAvatarFile').value = '';
+      showToast('Ditandai untuk dihapus. Simpan untuk menerapkan.', 'info');
+    }
+  });
+}
+
+function removeCarouselImage(index) {
+  try {
+    let images = JSON.parse(window.currentSettings.CarouselImages);
+    images.splice(index, 1);
+    window.currentSettings.CarouselImages = JSON.stringify(images);
+    document.getElementById('CarouselImagesBase64').value = JSON.stringify(images); // Treat as a new upload batch with 1 removed
+    renderThumbnails();
+    showToast('Gambar dihapus. Simpan untuk menerapkan.', 'info');
+  } catch (e) { }
+}
+
+function toggleMusicInput() {
+  const type = document.querySelector('input[name="musicType"]:checked').value;
+  const urlGroup = document.getElementById('music-url-group');
+  const uploadGroup = document.getElementById('music-upload-group');
+
+  if (type === 'url') {
+    urlGroup.style.display = 'block';
+    if (uploadGroup) uploadGroup.style.display = 'none';
+  } else {
+    urlGroup.style.display = 'none';
+    if (uploadGroup) uploadGroup.style.display = 'block';
   }
 }
