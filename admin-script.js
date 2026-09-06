@@ -354,10 +354,11 @@ function populateGallery(data) {
   tbody.innerHTML = '';
   data.forEach(item => {
     let preview = item.type === 'video' ? `<video src="${item.url}" width="50" style="border-radius:5px;" muted></video>` : `<img src="${item.url}" width="50" style="border-radius:5px;">`;
+    let categoryBadge = item.category ? `<br><span style="font-size: 0.7rem; background: var(--secondary-color); padding: 2px 5px; border-radius: 4px; color: var(--bg-color);">${escapeHTML(item.category)}</span>` : '';
     tbody.innerHTML += `
     <tr>
       <td>${preview}</td>
-      <td>${escapeHTML(item.name || '')}</td>
+      <td>${escapeHTML(item.name || '')} ${categoryBadge}</td>
       <td>
         <button class="btn-danger" onclick="deleteGalleryItem('${item.id}')"><i class="fas fa-trash"></i> Hapus</button>
       </td>
@@ -377,6 +378,7 @@ function addGallery(e) {
   }
   const file = fileInput.files[0];
   const type = document.getElementById('media-type').value;
+  const category = document.getElementById('media-category').value;
 
   if (type === 'video') {
     if (file.size > 15 * 1024 * 1024) {
@@ -391,6 +393,7 @@ function addGallery(e) {
       const item = {
         name: document.getElementById('media-name').value,
         type: 'video',
+        category: category,
         mimeType: file.type,
         base64Data: event.target.result
       };
@@ -408,6 +411,7 @@ function addGallery(e) {
     const item = {
       name: document.getElementById('media-name').value,
       type: 'photo',
+      category: category,
       mimeType: 'image/jpeg', // force mime to jpeg
       base64Data: dataUrl
     };

@@ -110,7 +110,7 @@
         istimewa ini.
       </p>
 
-      <button class="btn-primary pulse-btn" onclick="openInvitation()"
+      <button id="btn-open-invitation" class="btn-primary pulse-btn" onclick="openInvitation()"
         style="border-radius: 50px; padding: 12px 35px; font-size: 1.1rem;">
         <i class="fas fa-envelope-open-text" style="margin-right: 8px;"></i> Buka Undangan
       </button>
@@ -119,6 +119,19 @@
 
   <!-- Main Content (Hidden Initially) -->
   <main id="main-content" style="display: none;">
+    <!-- Flying Birds Animation -->
+    <div class="birds-container">
+      <div class="bird bird1">
+        <svg viewBox="0 0 100 100" width="30" height="30"><path d="M10,50 Q30,20 50,50 Q70,20 90,50 Q70,40 50,60 Q30,40 10,50 Z" fill="#D4AF37" opacity="0.6"/></svg>
+      </div>
+      <div class="bird bird2">
+        <svg viewBox="0 0 100 100" width="20" height="20"><path d="M10,50 Q30,20 50,50 Q70,20 90,50 Q70,40 50,60 Q30,40 10,50 Z" fill="#D4AF37" opacity="0.4"/></svg>
+      </div>
+      <div class="bird bird3">
+        <svg viewBox="0 0 100 100" width="25" height="25"><path d="M10,50 Q30,20 50,50 Q70,20 90,50 Q70,40 50,60 Q30,40 10,50 Z" fill="#D4AF37" opacity="0.5"/></svg>
+      </div>
+    </div>
+
     <!-- Greeting Section -->
     <section class="section greeting text-center mobile-tab active-tab" id="greeting">
       <div class="container">
@@ -168,27 +181,39 @@
           </div>
         </div>
 
-        <div class="events">
-          <div class="event-card">
-            <h3>Akad Nikah</h3>
-            <p class="date"><i class="far fa-calendar-alt"></i> <span id="akad-date">Selasa, 01 Desember 2026</span></p>
-            <p class="time"><i class="far fa-clock"></i> <span id="akad-time">08:00 WIB - Selesai</span></p>
+        <div class="unified-event-card">
+          <div class="event-grid">
+            <div class="event-item">
+              <h3><i class="fas fa-ring" style="color:var(--secondary-color); margin-bottom: 5px;"></i><br>Akad Nikah</h3>
+              <p class="date"><i class="far fa-calendar-alt"></i> <span id="akad-date">Selasa, 01 Desember 2026</span></p>
+              <p class="time"><i class="far fa-clock"></i> <span id="akad-time">08:00 WIB - Selesai</span></p>
+            </div>
+            
+            <div class="event-divider-vertical">
+              <div class="v-line"></div>
+              <i class="fas fa-heart" style="color:var(--secondary-color);"></i>
+              <div class="v-line"></div>
+            </div>
+            
+            <div class="event-item">
+              <h3><i class="fas fa-glass-cheers" style="color:var(--secondary-color); margin-bottom: 5px;"></i><br>Resepsi</h3>
+              <p class="date"><i class="far fa-calendar-alt"></i> <span id="resepsi-date">Selasa, 01 Desember 2026</span></p>
+              <p class="time"><i class="far fa-clock"></i> <span id="resepsi-time">11:00 WIB - Selesai</span></p>
+            </div>
           </div>
-          <div class="event-card">
-            <h3>Resepsi</h3>
-            <p class="date"><i class="far fa-calendar-alt"></i> <span id="resepsi-date">Selasa, 01 Desember 2026</span>
-            </p>
-            <p class="time"><i class="far fa-clock"></i> <span id="resepsi-time">11:00 WIB - Selesai</span></p>
-          </div>
-        </div>
 
-        <div class="location-card">
-          <h3>Lokasi Acara</h3>
-          <p>Gedung Raga Seridalam</p>
-          <div id="map-container" class="map-container" onclick="openMapModal()">
-            <!-- Map Image or Iframe will be inserted here -->
+          <div class="location-item mt-4">
+            <h3 style="border-top: 1px solid rgba(212,175,55,0.3); padding-top: 20px; margin-top: 20px;">
+              <i class="fas fa-map-marker-alt" style="color:var(--secondary-color);"></i> Lokasi Acara
+            </h3>
+            <p class="venue-name" style="font-size:1.2rem; font-weight: bold; margin-bottom:15px;">Gedung Raga Seridalam</p>
+            <div id="map-container" class="map-container" onclick="openMapModal()">
+              <!-- Map Image or Iframe will be inserted here -->
+            </div>
+            <a href="#" id="maps-link" target="_blank" class="btn-primary mt-3" style="display:inline-block; width:100%; border-radius: 30px;">
+              <i class="fas fa-location-arrow"></i> Buka Google Maps
+            </a>
           </div>
-          <a href="#" id="maps-link" target="_blank" class="btn-secondary mt-3">Buka Google Maps</a>
         </div>
       </div>
     </section>
@@ -215,7 +240,7 @@
     <section class="section gallery-section mobile-tab" id="gallery" data-aos="fade-up">
       <div class="container text-center">
         <h2 class="section-title">Galeri Kami</h2>
-        <div class="gallery-grid" id="gallery-grid">
+        <div class="gallery-container" id="gallery-container">
           <!-- Gallery items will be populated here -->
         </div>
       </div>

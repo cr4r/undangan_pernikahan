@@ -122,9 +122,9 @@ function setupDatabase(ss) {
   sheet1.appendRow(['BankAccounts', JSON.stringify([{"bank": "BCA", "account": "1234567890", "name": "Putra / Putri"}])]);
   
   var gallery = ss.insertSheet('Gallery');
-  gallery.appendRow(['Id', 'Type', 'Url', 'Name']);
-  gallery.appendRow(['1', 'photo', 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80', 'Contoh Foto 1']);
-  gallery.appendRow(['2', 'photo', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80', 'Contoh Foto 2']);
+  gallery.appendRow(['Id', 'Type', 'Url', 'Name', 'Category']);
+  gallery.appendRow(['1', 'photo', 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80', 'Contoh Foto 1', 'Pre-Wedding']);
+  gallery.appendRow(['2', 'photo', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80', 'Contoh Foto 2', 'Engagement']);
   
   var rsvp = ss.insertSheet('RSVP');
   rsvp.appendRow(['Timestamp', 'Name', 'Attendance', 'Message']);
@@ -260,7 +260,8 @@ function getGallery() {
       id: data[i][0],
       type: data[i][1],
       url: data[i][2],
-      name: data[i][3] || ''
+      name: data[i][3] || '',
+      category: data[i][4] || 'Umum' // Fallback for old data
     });
   }
   return gallery;
@@ -282,7 +283,7 @@ function addGalleryItem(item, token) {
   var ss = getDb();
   var sheet = ss.getSheetByName('Gallery');
   var id = Utilities.getUuid();
-  sheet.appendRow([id, item.type, item.url, item.name]);
+  sheet.appendRow([id, item.type, item.url, item.name, item.category || 'Umum']);
   return { success: true, id: id };
 }
 

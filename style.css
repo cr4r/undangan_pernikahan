@@ -462,39 +462,92 @@ h3 {
   }
 }
 
-.events {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  flex-wrap: wrap;
+.unified-event-card {
+  /* background: white; */
+  padding: 2.5rem 1.5rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.2);
   margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
 }
 
-.event-card,
-.location-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 15px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+.unified-event-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, transparent, var(--secondary-color), transparent);
+}
+
+.event-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .event-grid {
+    flex-direction: row;
+    align-items: stretch;
+  }
+}
+
+.event-item {
   flex: 1;
-  min-width: 300px;
-  border-top: 4px solid var(--secondary-color);
+  padding: 1rem;
+  text-align: center;
 }
 
-.event-card h3,
-.location-card h3 {
-  font-size: 1.8rem;
+.event-item h3 {
+  font-size: 1.6rem;
+  color: var(--primary-color);
   margin-bottom: 1rem;
 }
 
-.event-card p {
+.event-item p {
   margin-bottom: 0.5rem;
   font-size: 1.1rem;
+  color: var(--text-color);
 }
 
-.event-card i {
-  color: var(--secondary-color);
-  margin-right: 10px;
+.event-divider-vertical {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+@media (min-width: 768px) {
+  .event-divider-vertical {
+    flex-direction: column;
+  }
+}
+
+.event-divider-vertical .v-line {
+  width: 50px;
+  height: 1px;
+  background: rgba(212, 175, 55, 0.3);
+}
+
+@media (min-width: 768px) {
+  .event-divider-vertical .v-line {
+    width: 1px;
+    height: 50px;
+  }
+}
+
+.location-item h3 {
+  font-size: 1.6rem;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
 }
 
 .map-container {
@@ -512,38 +565,71 @@ h3 {
   border: none;
 }
 
-/* Gallery (Masonry Style) */
+/* Gallery (Elegant Justified Flex Style) */
 .gallery-grid {
-  column-count: 3;
-  column-gap: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .gallery-grid {
-    column-count: 2;
+    gap: 10px;
   }
 }
 
 .gallery-item {
+  flex: 1 1 200px;
+  height: 280px;
   position: relative;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
-  margin-bottom: 15px;
-  break-inside: avoid;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  background-color: #f8f8f8;
+}
+
+@media (max-width: 768px) {
+  .gallery-item {
+    flex: 1 1 140px;
+    height: 180px;
+  }
+}
+
+/* Elegant overlay on hover */
+.gallery-item::after {
+  content: '\f00e';
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(212, 175, 55, 0.4);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2.5rem;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.gallery-item:hover::after {
+  opacity: 1;
 }
 
 .gallery-item img,
 .gallery-item video {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
   display: block;
-  transition: transform 0.5s ease;
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .gallery-item:hover img,
 .gallery-item:hover video {
-  transform: scale(1.05);
+  transform: scale(1.1);
 }
 
 /* RSVP */
@@ -1285,7 +1371,7 @@ h3 {
   border: 1px solid rgba(212, 175, 55, 0.5);
   transition: all 0.5s ease;
   background: #fff;
-  padding: 4px;
+  padding: 5px;
 }
 
 .gallery-item img,
@@ -1389,5 +1475,234 @@ h3 {
   .gallery-item:nth-child(6) {
     grid-column: span 3;
     grid-row: span 2;
+  }
+}
+
+/* Flying Birds Animation */
+.birds-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.bird {
+  position: absolute;
+  animation: fly linear infinite;
+  opacity: 0.7;
+}
+
+.bird1 {
+  top: 10%;
+  left: -50px;
+  animation-duration: 20s;
+  animation-delay: 0s;
+}
+
+.bird2 {
+  top: 35%;
+  left: -50px;
+  animation-duration: 25s;
+  animation-delay: 7s;
+}
+
+.bird3 {
+  top: 15%;
+  left: -50px;
+  animation-duration: 22s;
+  animation-delay: 3s;
+}
+
+@keyframes fly {
+  0% {
+    left: -50px;
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  90% {
+    opacity: 1;
+  }
+
+  100% {
+    left: 120%;
+    transform: translateY(-50px) scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* Desktop Split-Screen Layout for Invitation */
+@media (min-width: 992px) {
+  body {
+    overflow: auto;
+    /* allow scrolling so AOS triggers correctly */
+  }
+
+  #home {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    transition: width 1.2s cubic-bezier(0.77, 0, 0.175, 1);
+    z-index: 999;
+  }
+
+  #home.opened {
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    width: 64vw !important;
+    /* 64% cover */
+  }
+
+  #main-content {
+    position: relative !important;
+    margin-left: 64vw !important;
+    top: 0;
+    right: -36vw;
+    width: 34vw !important;
+    /* using 36vw to fill 100% since home is 64vw */
+    height: auto !important;
+    overflow-y: visible !important;
+    transform: none !important;
+    opacity: 1 !important;
+    transition: right 1.2s cubic-bezier(0.77, 0, 0.175, 1);
+    z-index: 1000;
+    padding: 0 20px;
+
+    /* Copy body background so it looks seamless but covers background if needed */
+    background-color: var(--bg-color);
+    background-image: radial-gradient(circle at top, rgba(212, 175, 55, 0.2), transparent 50%),
+      url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2.5L22.5 16 25 13.5V0h2v13.5L29.5 16 32 13.5V0h2v13.5L36.5 16 39 13.5V0h-2v12.5L34.5 15 32 12.5V0h-2v12.5L27.5 15 25 12.5V0h-2v12.5L20.5 15 18 12.5V0h-2v12.5L13.5 15 11 12.5V0H9v12.5L6.5 15 4 12.5V0H2v12.5L0 15v5.5l2.5 2.5L5 20.5V40h2V20.5l2.5 2.5L12 20.5V40h2V20.5l2.5 2.5L19 20.5V40h2V20.5l2.5 2.5L26 20.5V40h2V20.5l2.5 2.5L33 20.5V40h2V20.5l2.5 2.5L40 20.5V18h-1V20.5l-2.5-2.5L34 20.5V40h-2V20.5l-2.5-2.5L27 20.5V40h-2V20.5l-2.5-2.5L20 20.5z' fill='%23d4af37' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+  }
+
+  #main-content.fade-in {
+    animation: none !important;
+    transform: none !important;
+    right: 0 !important;
+  }
+
+  /* Form RSVP diubah menjadi satu grid line */
+  .rsvp-wrapper {
+    grid-template-columns: 1fr !important;
+  }
+
+  #rsvp-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  /* Couple name dibuat bersusun agar & ada di tengah/bawah nama pertama */
+  .couple-names {
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+
+  .bottom-nav {
+    display: none !important;
+    /* Hide bottom nav on desktop */
+  }
+
+  /* Make audio and scroll buttons prominent on desktop */
+  .audio-btn,
+  .auto-scroll-btn {
+    z-index: 9999 !important;
+    background: var(--primary-color) !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+  }
+}
+
+/* ==========================================
+   INFINITE MARQUEE SLIDER GALLERY
+   ========================================== */
+.gallery-container {
+  padding: 20px 0;
+  overflow: hidden;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  background: transparent;
+}
+
+.marquee-row {
+  margin-bottom: 20px;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.marquee-track {
+  display: flex;
+  gap: 15px;
+  width: max-content;
+  /* Add hardware acceleration for smoother animation */
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+/* Animations for marquee */
+@keyframes scrollLeft {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes scrollRight {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+.marquee-track.left {
+  animation: scrollLeft 40s linear infinite;
+}
+
+.marquee-track.right {
+  animation: scrollRight 40s linear infinite;
+}
+
+/* Pause on hover/touch */
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.marquee-item {
+  width: 250px;
+  height: 200px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  cursor: pointer;
+  position: relative;
+}
+
+.marquee-item img,
+.marquee-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.marquee-item:hover img,
+.marquee-item:hover video {
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .marquee-item {
+    width: 180px;
+    height: 140px;
   }
 }

@@ -272,41 +272,93 @@ function initPage(data) {
     document.getElementById('bg-music').src = musicUrl;
   }
 
-  // Gallery Rendering (Dynamic Photos and Videos)
-  const galleryGrid = document.getElementById('gallery-grid');
-  galleryGrid.innerHTML = '';
+  // Gallery Rendering (Dynamic Categorized Rows)
+  const galleryContainer = document.getElementById('gallery-container');
+  galleryContainer.innerHTML = '';
   window.galleryItems = [];
-
+  
   if (data.gallery && data.gallery.length > 0) {
+    const totalItems = data.gallery.length;
+    // Split into 3 arrays roughly equal
+    const row1 = [];
+    const row2 = [];
+    const row3 = [];
+    
     data.gallery.forEach((item, index) => {
-      let delay = (index % 6) * 100;
-      if (item.type === 'video') {
-        // Extract Google Drive ID to generate a thumbnail and a preview player
-        const fileIdMatch = item.url.match(/[?&]id=([^&]+)/);
-        const fileId = fileIdMatch ? fileIdMatch[1] : '';
-        const thumbUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1000';
-        window.galleryItems.push({ url: fileId, type: 'video' });
-        let i = window.galleryItems.length - 1;
+      if (index % 3 === 0) row1.push(item);
+      else if (index % 3 === 1) row2.push(item);
+      else row3.push(item);
+    });
 
-        galleryGrid.innerHTML += `
-          <div class="gallery-item video-item" data-aos="zoom-in" data-aos-delay="${delay}">
-            <img src="${thumbUrl}" alt="Video Thumbnail" onclick="openModal(${i})" style="width:100%; height:100%; object-fit:cover; border-radius:15px; cursor:pointer;">
-            <div class="play-icon" onclick="openModal(${i})" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:rgba(255,255,255,0.9); font-size:4rem; cursor:pointer; pointer-events:none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));"><i class="fas fa-play-circle"></i></div>
-          </div>
-        `;
-      } else {
-        // Render photo
-        window.galleryItems.push({ url: item.url, type: 'photo' });
-        let i = window.galleryItems.length - 1;
-        galleryGrid.innerHTML += `
-          <div class="gallery-item" data-aos="zoom-in" data-aos-delay="${delay}">
-            <img src="${item.url}" alt="${escapeHTML(item.name || 'Gallery')}" onclick="openModal(${i})">
-          </div>
-        `;
+    const rows = [
+      { items: row1, direction: 'left' },
+      { items: row2, direction: 'right' },
+      { items: row3, direction: 'left' }
+    ];
+
+    rows.forEach((row, rowIndex) => {
+      if (row.items.length === 0) return;
+      
+      let trackHtml = `<div class="marquee-row"><div class="marquee-track ${row.direction}">`;
+      
+      // We duplicate the items 3 times to ensure a smooth infinite loop
+      for(let copy = 0; copy < 3; copy++) {
+        row.items.forEach((item) => {
+          let isVideo = item.type === 'video';
+          let itemUrl = item.url;
+          let thumbUrl = itemUrl;
+          let fileId = '';
+          
+          if (isVideo) {
+            const fileIdMatch = itemUrl.match(/[?&]id=([^&]+)/);
+            fileId = fileIdMatch ? fileIdMatch[1] : '';
+            thumbUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1000';
+            
+            // Only add to global gallery array on the first copy to avoid modal duplicates
+            if (copy === 0) {
+              window.galleryItems.push({ url: fileId, type: 'video' });
+            }
+          } else {
+            if (copy === 0) {
+              window.galleryItems.push({ url: item.url, type: 'photo' });
+            }
+          }
+          
+          // Calculate the exact index in window.galleryItems for the modal
+          let globalIndex = -1;
+          if (copy === 0) {
+            globalIndex = window.galleryItems.length - 1;
+          } else {
+            // Find its index from the first copy
+            if (isVideo) {
+              globalIndex = window.galleryItems.findIndex(g => g.url === fileId && g.type === 'video');
+            } else {
+              globalIndex = window.galleryItems.findIndex(g => g.url === item.url && g.type === 'photo');
+            }
+          }
+
+          if (isVideo) {
+            trackHtml += `
+              <div class="marquee-item" onclick="openModal(${globalIndex})">
+                <img src="${thumbUrl}" alt="Video Thumbnail">
+                <div class="play-icon" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:rgba(255,255,255,0.9); font-size:3rem; pointer-events:none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));"><i class="fas fa-play-circle"></i></div>
+              </div>
+            `;
+          } else {
+            trackHtml += `
+              <div class="marquee-item" onclick="openModal(${globalIndex})">
+                <img src="${item.url}" alt="Gallery Image">
+              </div>
+            `;
+          }
+        });
       }
+      
+      trackHtml += `</div></div>`;
+      galleryContainer.innerHTML += trackHtml;
     });
   } else {
-    // Dummy high-quality wedding images & video for fallback if empty
+    // Dummy Data fallback
     const dummyImages = [
       'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
@@ -315,22 +367,29 @@ function initPage(data) {
       'https://images.unsplash.com/photo-1469334031218-e382a71b716b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
     ];
+    
+    const rows = [
+      { items: [dummyImages[0], dummyImages[1]], direction: 'left' },
+      { items: [dummyImages[2], dummyImages[3]], direction: 'right' },
+      { items: [dummyImages[4], dummyImages[5]], direction: 'left' }
+    ];
 
-    for (let i = 0; i < 6; i++) {
-      window.galleryItems.push({ url: dummyImages[i], type: 'photo' });
-      let idx = window.galleryItems.length - 1;
-      galleryGrid.innerHTML += `
-        <div class="gallery-item" data-aos="zoom-in" data-aos-delay="${i * 100}">
-          <img src="${dummyImages[i]}" alt="Gallery ${i + 1}" onclick="openModal(${idx})">
-        </div>
-      `;
-    }
-
-    galleryGrid.innerHTML += `
-      <div class="gallery-item video-item" data-aos="zoom-in" data-aos-delay="600">
-        <video src="" controls preload="metadata" poster="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" style="width:100%; height:100%; object-fit:cover; border-radius:15px;"></video>
-      </div>
-    `;
+    rows.forEach((row, rIdx) => {
+      let trackHtml = `<div class="marquee-row"><div class="marquee-track ${row.direction}">`;
+      for(let copy = 0; copy < 3; copy++) {
+        row.items.forEach(img => {
+          if(copy === 0) window.galleryItems.push({ url: img, type: 'photo' });
+          let globalIndex = window.galleryItems.findIndex(g => g.url === img);
+          trackHtml += `
+            <div class="marquee-item" onclick="openModal(${globalIndex})">
+              <img src="${img}" alt="Gallery Fallback">
+            </div>
+          `;
+        });
+      }
+      trackHtml += `</div></div>`;
+      galleryContainer.innerHTML += trackHtml;
+    });
   }
 
   // RSVPs
@@ -378,8 +437,15 @@ function initPage(data) {
 
 function openInvitation() {
   document.getElementById('home').classList.add('opened');
-  document.getElementById('main-content').style.display = 'block';
-  document.getElementById('main-content').classList.add('fade-in');
+  const btnBuka = document.getElementById('btn-open-invitation');
+  if (btnBuka) btnBuka.style.display = 'none';
+  
+  const mainContent = document.getElementById('main-content');
+  mainContent.style.display = 'block';
+  // Trigger reflow to ensure CSS transitions execute
+  void mainContent.offsetWidth;
+  mainContent.classList.add('fade-in');
+  
   const bottomNav = document.getElementById('bottom-nav');
   if (bottomNav) bottomNav.style.display = 'block';
   window.scrollTo(0, 0);
@@ -407,6 +473,11 @@ function openInvitation() {
       offset: 50
     });
   }, 100);
+
+  // Auto-start autoscroll after a brief delay so user can orient themselves
+  setTimeout(() => {
+    startAutoScroll();
+  }, 1500);
 }
 
 function toggleAudio() {
@@ -437,11 +508,13 @@ function startAutoScroll() {
   const btn = document.getElementById('auto-scroll-btn');
   if (btn) btn.innerHTML = '<i class="fas fa-chevron-down scroll-anim"></i>';
 
-  autoScrollInterval = setInterval(() => {
-    // 1. Scroll jalan perlahan dari atas ke bawah (Kode Kesatu)
-    window.scrollBy(0, 1);
+  function step() {
+    if (!isAutoScrolling) return;
 
-    // 2. Deteksi apakah sudah mentok paling bawah (Kode Kesatu)
+    // 1. Scroll jalan perlahan dari atas ke bawah (Smooth 60fps)
+    window.scrollBy(0, 1.5); // 1.5px per frame for a nice smooth speed
+
+    // 2. Deteksi apakah sudah mentok paling bawah
     let isBottom = false;
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
 
@@ -460,12 +533,12 @@ function startAutoScroll() {
     if (isBottom) {
       stopAutoScroll();
 
-      // 3. Logika Pindah Tab (Kode Kedua)
+      // 3. Logika Pindah Tab
       if (window.innerWidth <= 768) {
         isAutoScrolling = true;
         if (btn) btn.innerHTML = '<i class="fas fa-chevron-down scroll-anim"></i>';
 
-        // Jeda 3.5 detik untuk baca teks paling bawah
+        // Jeda 0.5 detik untuk pindah tab (sesuai request)
         autoScrollTimeout = setTimeout(() => {
           const tabs = ['greeting', 'events', 'gallery', 'gift', 'rsvp'];
           const activeLink = document.querySelector('.bottom-nav a.active');
@@ -484,20 +557,24 @@ function startAutoScroll() {
                 // PENTING: Kembalikan layar ke paling atas di tab yang baru!
                 window.scrollTo(0, 0);
 
-                // Jeda 2 detik sebelum mulai jalan lagi di tab baru
+                // Jeda 0.5 detik sebelum mulai jalan lagi di tab baru
                 autoScrollTimeout = setTimeout(() => {
                   startAutoScroll();
-                }, 2000);
+                }, 500);
               }
             } else {
               // Sudah mentok di tab terakhir (RSVP)
               stopAutoScroll();
             }
           }
-        }, 3500);
+        }, 500);
       }
+    } else {
+      autoScrollInterval = requestAnimationFrame(step);
     }
-  }, 25);
+  }
+
+  autoScrollInterval = requestAnimationFrame(step);
 }
 
 function stopAutoScroll() {
@@ -506,7 +583,8 @@ function stopAutoScroll() {
   if (btn) btn.innerHTML = '<i class="fas fa-hand-paper"></i>';
 
   if (autoScrollInterval) {
-    clearInterval(autoScrollInterval);
+    cancelAnimationFrame(autoScrollInterval);
+    clearInterval(autoScrollInterval); // fallback
     autoScrollInterval = null;
   }
   if (autoScrollTimeout) {
