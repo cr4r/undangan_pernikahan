@@ -1448,6 +1448,7 @@ h3 {
     transform: perspective(1000px) rotateY(90deg);
     transform-origin: right;
   }
+
   100% {
     opacity: 1;
     transform: perspective(1000px) rotateY(0deg);
@@ -1461,6 +1462,7 @@ h3 {
     transform: perspective(1000px) rotateY(-90deg);
     transform-origin: left;
   }
+
   100% {
     opacity: 1;
     transform: perspective(1000px) rotateY(0deg);
@@ -1681,7 +1683,8 @@ h3 {
 /* Desktop Split-Screen Layout for Invitation */
 @media (min-width: 992px) {
   body {
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
     /* allow scrolling so AOS triggers correctly */
   }
 
@@ -1699,17 +1702,17 @@ h3 {
     transform: none !important;
     opacity: 1 !important;
     pointer-events: auto !important;
-    width: 64vw !important;
-    /* 64% cover */
+    width: 65% !important;
+    /* 65% cover */
   }
 
   #main-content {
     position: relative !important;
-    margin-left: 64vw !important;
+    margin-left: 65% !important;
     top: 0;
-    right: -36vw;
-    width: 34vw !important;
-    /* using 36vw to fill 100% since home is 64vw */
+    right: -35%;
+    width: 35% !important;
+    /* using 35% to fill 100% since home is 65% */
     height: auto !important;
     overflow-y: visible !important;
     transform: none !important;
@@ -1717,6 +1720,7 @@ h3 {
     transition: right 1.2s cubic-bezier(0.77, 0, 0.175, 1);
     z-index: 1000;
     padding: 0 20px;
+    box-sizing: border-box;
 
     /* Copy body background so it looks seamless but covers background if needed */
     background-color: var(--bg-color);
