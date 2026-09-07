@@ -210,6 +210,24 @@ function handleMapUpload(input) {
   }
 }
 
+function handleBridePhotoUpload(input) {
+  if (input.files.length > 0) {
+    const status = document.getElementById('bride-photo-status');
+    if (status.getAttribute('data-exists') === 'true') {
+      Swal.fire({ title: 'Timpa Foto?', text: 'Sudah ada foto tersimpan. Ingin menimpanya?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Timpa' }).then((r) => { if(!r.isConfirmed) input.value = ''; });
+    }
+  }
+}
+
+function handleGroomPhotoUpload(input) {
+  if (input.files.length > 0) {
+    const status = document.getElementById('groom-photo-status');
+    if (status.getAttribute('data-exists') === 'true') {
+      Swal.fire({ title: 'Timpa Foto?', text: 'Sudah ada foto tersimpan. Ingin menimpanya?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Timpa' }).then((r) => { if(!r.isConfirmed) input.value = ''; });
+    }
+  }
+}
+
 function addBankField() {
   syncBankListFromDOM();
   bankAccountsList.push({ bank: '', account: '', name: '' });
@@ -268,6 +286,24 @@ function populateSettings(data) {
     mapStatus.setAttribute('data-exists', 'false');
   }
 
+  const brideStatus = document.getElementById('bride-photo-status');
+  if (data.BridePhoto) {
+    brideStatus.innerHTML = `<img src="${data.BridePhoto}" style="max-height: 100px; border-radius: 8px; margin-top:10px;"><br><i class="fas fa-check-circle" style="color:green;"></i> Foto ter-upload.`;
+    brideStatus.setAttribute('data-exists', 'true');
+  } else {
+    brideStatus.innerHTML = 'Belum ada foto ter-upload.';
+    brideStatus.setAttribute('data-exists', 'false');
+  }
+
+  const groomStatus = document.getElementById('groom-photo-status');
+  if (data.GroomPhoto) {
+    groomStatus.innerHTML = `<img src="${data.GroomPhoto}" style="max-height: 100px; border-radius: 8px; margin-top:10px;"><br><i class="fas fa-check-circle" style="color:green;"></i> Foto ter-upload.`;
+    groomStatus.setAttribute('data-exists', 'true');
+  } else {
+    groomStatus.innerHTML = 'Belum ada foto ter-upload.';
+    groomStatus.setAttribute('data-exists', 'false');
+  }
+
   if (data.BankAccounts) {
     try { bankAccountsList = JSON.parse(data.BankAccounts); } catch (e) { bankAccountsList = []; }
   } else {
@@ -305,6 +341,8 @@ function saveSettings(e) {
 
   const mapFileInput = document.getElementById('MapImageFile');
   const musicFileInput = document.getElementById('MusicFile');
+  const brideFileInput = document.getElementById('BridePhotoFile');
+  const groomFileInput = document.getElementById('GroomPhotoFile');
 
   function proceedToSend() {
     sendSettings(data, btn);
@@ -313,7 +351,6 @@ function saveSettings(e) {
   function readMusicFile(callback) {
     if (musicFileInput && musicFileInput.files.length > 0) {
       const file = musicFileInput.files[0];
-      // Validasi ukuran maksimal (misal 5MB)
       if (file.size > 5 * 1024 * 1024) {
         Swal.fire('Terlalu Besar', 'Ukuran file musik maksimal 5MB.', 'error');
         btn.innerHTML = '<i class="fas fa-save"></i> Simpan Semua Pengaturan';
@@ -333,16 +370,50 @@ function saveSettings(e) {
     }
   }
 
-  if (mapFileInput.files.length > 0) {
-    const file = mapFileInput.files[0];
-    compressImage(file, 800, 800, 0.7, function (dataUrl) {
-      data.MapImageBase64 = dataUrl;
-      data.MapImageMime = file.type;
-      readMusicFile(proceedToSend);
-    });
-  } else {
-    readMusicFile(proceedToSend);
+  function readMapFile(callback) {
+    if (mapFileInput.files.length > 0) {
+      compressImage(mapFileInput.files[0], 800, 800, 0.7, function (dataUrl) {
+        data.MapImageBase64 = dataUrl;
+        data.MapImageMime = mapFileInput.files[0].type;
+        callback();
+      });
+    } else {
+      callback();
+    }
   }
+
+  function readBrideFile(callback) {
+    if (brideFileInput.files.length > 0) {
+      compressImage(brideFileInput.files[0], 500, 500, 0.8, function(dataUrl) {
+        data.BridePhotoBase64 = dataUrl;
+        data.BridePhotoMime = brideFileInput.files[0].type;
+        callback();
+      });
+    } else {
+      callback();
+    }
+  }
+
+  function readGroomFile(callback) {
+    if (groomFileInput.files.length > 0) {
+      compressImage(groomFileInput.files[0], 500, 500, 0.8, function(dataUrl) {
+        data.GroomPhotoBase64 = dataUrl;
+        data.GroomPhotoMime = groomFileInput.files[0].type;
+        callback();
+      });
+    } else {
+      callback();
+    }
+  }
+
+  // Chain the callbacks
+  readBrideFile(() => {
+    readGroomFile(() => {
+      readMapFile(() => {
+        readMusicFile(proceedToSend);
+      });
+    });
+  });
 }
 
 function sendSettings(data, btn) {

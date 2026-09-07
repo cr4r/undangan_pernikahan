@@ -109,14 +109,24 @@
                   <textarea id="BrideDesc" class="floating-input" placeholder=" " rows="2"></textarea>
                   <label class="floating-label">Deskripsi Wanita (cth: Putri dari...)</label>
                 </div>
+                <div class="file-upload-wrapper">
+                  <label>Upload Foto Mempelai Wanita (Opsional)</label>
+                  <input type="file" id="BridePhotoFile" accept="image/*" onchange="handleBridePhotoUpload(this)">
+                  <span id="bride-photo-status" style="display:block; margin-top:5px; font-size:0.85rem; color:#555;"></span>
+                </div>
 
-                <div class="floating-group">
+                <div class="floating-group" style="margin-top: 20px;">
                   <input type="text" id="GroomName" class="floating-input" placeholder=" " required>
                   <label class="floating-label">Nama Pengantin Pria</label>
                 </div>
                 <div class="floating-group">
                   <textarea id="GroomDesc" class="floating-input" placeholder=" " rows="2"></textarea>
                   <label class="floating-label">Deskripsi Pria</label>
+                </div>
+                <div class="file-upload-wrapper">
+                  <label>Upload Foto Mempelai Pria (Opsional)</label>
+                  <input type="file" id="GroomPhotoFile" accept="image/*" onchange="handleGroomPhotoUpload(this)">
+                  <span id="groom-photo-status" style="display:block; margin-top:5px; font-size:0.85rem; color:#555;"></span>
                 </div>
 
                 <div class="floating-group">

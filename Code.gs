@@ -119,6 +119,8 @@ function setupDatabase(ss) {
   sheet1.appendRow(['Greeting', 'Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan resepsi pernikahan putra-putri kami.']);
   sheet1.appendRow(['BrideDesc', 'Putri dari Bpk. Fulan & Ibu Fulanah']);
   sheet1.appendRow(['GroomDesc', 'Putra dari Bpk. Fulan & Ibu Fulanah']);
+  sheet1.appendRow(['BridePhoto', '']);
+  sheet1.appendRow(['GroomPhoto', '']);
   sheet1.appendRow(['BankAccounts', JSON.stringify([{"bank": "BCA", "account": "1234567890", "name": "Putra / Putri"}])]);
   
   var gallery = ss.insertSheet('Gallery');
@@ -204,6 +206,18 @@ function saveSettings(settings, token) {
 
   if (settings.MusicFileBase64) {
     settings.MusicUrl = uploadFileToDrive(settings.MusicFileBase64, settings.MusicFileName || 'musik_latar.mp3', settings.MusicFileMime, 'Undangan Pernikahan');
+  }
+
+  if (settings.BridePhotoBase64) {
+    settings.BridePhoto = uploadFileToDrive(settings.BridePhotoBase64, 'bride_photo_' + Utilities.getUuid().substring(0,8) + '.png', settings.BridePhotoMime || 'image/png', 'Undangan Pernikahan');
+    delete settings.BridePhotoBase64;
+    delete settings.BridePhotoMime;
+  }
+
+  if (settings.GroomPhotoBase64) {
+    settings.GroomPhoto = uploadFileToDrive(settings.GroomPhotoBase64, 'groom_photo_' + Utilities.getUuid().substring(0,8) + '.png', settings.GroomPhotoMime || 'image/png', 'Undangan Pernikahan');
+    delete settings.GroomPhotoBase64;
+    delete settings.GroomPhotoMime;
   }
 
   // Handle Bank Icons and QR Codes

@@ -89,12 +89,31 @@ function initPage(data) {
   document.getElementById('groom-name').textContent = s.GroomName;
   document.getElementById('bride-desc').textContent = s.BrideDesc || 'Putri dari ...';
   document.getElementById('groom-desc').textContent = s.GroomDesc || 'Putra dari ...';
+  
+  // Populate Photos
+  if (s.BridePhoto) document.getElementById('bride-photo').src = s.BridePhoto;
+  if (s.GroomPhoto) document.getElementById('groom-photo').src = s.GroomPhoto;
 
   // Populate Dates
   const akad = new Date(s.AkadDate);
   const resepsi = new Date(s.ResepsiDate);
 
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  
+  // Format dates for Google Calendar (YYYYMMDDTHHmm00Z)
+  // We use local time by just removing punctuation to assume local timezone for user
+  const formatForCalendar = (dateObj) => {
+    return dateObj.toISOString().replace(/-|:|\.\d\d\d/g,"");
+  };
+  const startDateStr = formatForCalendar(resepsi);
+  // Assume reception lasts for 3 hours
+  const endDateStr = formatForCalendar(new Date(resepsi.getTime() + 3 * 60 * 60 * 1000));
+  
+  const calLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Pernikahan+${encodeURIComponent(s.GroomName)}+%26+${encodeURIComponent(s.BrideName)}&dates=${startDateStr}/${endDateStr}&details=Acara+Resepsi+Pernikahan&location=${encodeURIComponent(s.LocationAddress || '')}`;
+  
+  const heroCalBtn = document.getElementById('hero-calendar-btn');
+  if(heroCalBtn) heroCalBtn.href = calLink;
+
   document.getElementById('hero-date').textContent = resepsi.toLocaleDateString('id-ID', options);
   document.getElementById('akad-date').textContent = akad.toLocaleDateString('id-ID', options);
   document.getElementById('akad-time').textContent = akad.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB - Selesai';
@@ -866,9 +885,21 @@ document.addEventListener('DOMContentLoaded', () => {
           navLinks.forEach(nav => nav.classList.remove('active'));
           this.classList.add('active');
 
+          // Determine direction for animation
+          const currentTab = document.querySelector('.mobile-tab.active-tab');
+          let currentIdx = -1;
+          let targetIdx = -1;
+          const tabsArray = Array.from(tabs);
+          if (currentTab) currentIdx = tabsArray.indexOf(currentTab);
+          if (targetTab) targetIdx = tabsArray.indexOf(targetTab);
+          const isNext = targetIdx > currentIdx;
+
           // Switch tabs
-          tabs.forEach(tab => tab.classList.remove('active-tab'));
+          tabs.forEach(tab => tab.classList.remove('active-tab', 'turn-next', 'turn-prev'));
           targetTab.classList.add('active-tab');
+          if (currentIdx !== -1) {
+            targetTab.classList.add(isNext ? 'turn-next' : 'turn-prev');
+          }
 
           // Trigger typewriter animation on the title
           const title = targetTab.querySelector('h2.section-title, h3.section-title');

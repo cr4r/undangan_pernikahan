@@ -38,7 +38,7 @@
   <!-- Silakan ubah kode hex ini sesuai tema warna undangan (contoh ini warna gold) -->
   <title>Undangan Pernikahan</title>
   <link
-    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Josefin+Sans:wght@300;400;600&display=swap"
     rel="stylesheet">
   <link
     href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Playfair+Display:ital,wght@0,500;1,500&family=Poppins:wght@300;400;500&display=swap"
@@ -75,6 +75,18 @@
     </div>
     <div class="hero-overlay" style="background: rgba(0,0,0,0.65);"></div>
 
+    <!-- Floating Hearts -->
+    <div class="floating-hearts">
+      <i class="fas fa-heart"></i>
+      <i class="fas fa-heart"></i>
+      <i class="fas fa-heart"></i>
+      <i class="fas fa-heart"></i>
+      <i class="fas fa-heart"></i>
+      <i class="fas fa-heart"></i>
+      <i class="fas fa-heart"></i>
+      <i class="fas fa-heart"></i>
+    </div>
+
     <!-- Ornaments -->
     <div class="leaf-ornament top-left"
       style="font-size: 5rem; color: var(--secondary-color); opacity: 0.7; text-shadow: 2px 2px 5px rgba(0,0,0,0.5);">
@@ -102,16 +114,24 @@
           style="font-size: 2.5rem; display: inline; color: var(--secondary-color); margin: 0 10px;">&</span><br>
         <span id="bride-name-hero">Putri</span>
       </h1>
-      <span id="hero-date" style="display:none;"></span> <!-- Hidden date to prevent JS error -->
+
+      <p id="hero-date"
+        style="font-size: 1.1rem; color: #fff; margin-top: 15px; font-weight: 400; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">
+      </p>
+
+      <a id="hero-calendar-btn" href="#" target="_blank" class="btn-primary"
+        style="display:inline-block; border-radius: 50px; padding: 8px 20px; font-size: 0.9rem; margin-top: 15px; margin-bottom: 20px; text-decoration:none; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+        <i class="far fa-calendar-alt" style="margin-right: 5px;"></i> Save the Date
+      </a>
 
       <p class="hero-invitation-text greeting-text" id="greeting-text">
-        Tanpa mengurangi rasa hormat, kami mengundang Bapak/Ibu/Saudara/i untuk hadir dan memberikan doa restu pada
+        Tanpa mengurangi rasa hormat, kami mengundang anda untuk berkenan menghadiri dan memberikan doa restu pada
         acara pernikahan kami. Merupakan kebahagiaan tersendiri bagi kami apabila Anda dapat menjadi bagian dari hari
         istimewa ini.
       </p>
 
       <button id="btn-open-invitation" class="btn-primary pulse-btn" onclick="openInvitation()"
-        style="border-radius: 50px; padding: 12px 35px; font-size: 1.1rem;">
+        style="border-radius: 50px; padding: 12px 35px; font-size: 1.1rem; margin-top: 15px;">
         <i class="fas fa-envelope-open-text" style="margin-right: 8px;"></i> Buka Undangan
       </button>
     </div>
@@ -122,13 +142,19 @@
     <!-- Flying Birds Animation -->
     <div class="birds-container">
       <div class="bird bird1">
-        <svg viewBox="0 0 100 100" width="30" height="30"><path d="M10,50 Q30,20 50,50 Q70,20 90,50 Q70,40 50,60 Q30,40 10,50 Z" fill="#D4AF37" opacity="0.6"/></svg>
+        <svg viewBox="0 0 100 100" width="30" height="30">
+          <path d="M10,50 Q30,20 50,50 Q70,20 90,50 Q70,40 50,60 Q30,40 10,50 Z" fill="#D4AF37" opacity="0.6" />
+        </svg>
       </div>
       <div class="bird bird2">
-        <svg viewBox="0 0 100 100" width="20" height="20"><path d="M10,50 Q30,20 50,50 Q70,20 90,50 Q70,40 50,60 Q30,40 10,50 Z" fill="#D4AF37" opacity="0.4"/></svg>
+        <svg viewBox="0 0 100 100" width="20" height="20">
+          <path d="M10,50 Q30,20 50,50 Q70,20 90,50 Q70,40 50,60 Q30,40 10,50 Z" fill="#D4AF37" opacity="0.4" />
+        </svg>
       </div>
       <div class="bird bird3">
-        <svg viewBox="0 0 100 100" width="25" height="25"><path d="M10,50 Q30,20 50,50 Q70,20 90,50 Q70,40 50,60 Q30,40 10,50 Z" fill="#D4AF37" opacity="0.5"/></svg>
+        <svg viewBox="0 0 100 100" width="25" height="25">
+          <path d="M10,50 Q30,20 50,50 Q70,20 90,50 Q70,40 50,60 Q30,40 10,50 Z" fill="#D4AF37" opacity="0.5" />
+        </svg>
       </div>
     </div>
 
@@ -149,11 +175,13 @@
 
         <div class="couple-names">
           <div class="person">
+            <img id="groom-photo" class="person-avatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" alt="Groom">
             <h3 id="groom-name" class="script-font">Putra</h3>
             <p id="groom-desc">Putra dari Bpk. ... & Ibu ...</p>
           </div>
           <div class="and">&</div>
           <div class="person">
+            <img id="bride-photo" class="person-avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop" alt="Bride">
             <h3 id="bride-name" class="script-font">Putri</h3>
             <p id="bride-desc">Putri dari Bpk. ... & Ibu ...</p>
           </div>
@@ -184,20 +212,24 @@
         <div class="unified-event-card">
           <div class="event-grid">
             <div class="event-item">
-              <h3><i class="fas fa-ring" style="color:var(--secondary-color); margin-bottom: 5px;"></i><br>Akad Nikah</h3>
-              <p class="date"><i class="far fa-calendar-alt"></i> <span id="akad-date">Selasa, 01 Desember 2026</span></p>
+              <h3><i class="fas fa-ring" style="color:var(--secondary-color); margin-bottom: 5px;"></i><br>Akad Nikah
+              </h3>
+              <p class="date"><i class="far fa-calendar-alt"></i> <span id="akad-date">Selasa, 01 Desember 2026</span>
+              </p>
               <p class="time"><i class="far fa-clock"></i> <span id="akad-time">08:00 WIB - Selesai</span></p>
             </div>
-            
+
             <div class="event-divider-vertical">
               <div class="v-line"></div>
               <i class="fas fa-heart" style="color:var(--secondary-color);"></i>
               <div class="v-line"></div>
             </div>
-            
+
             <div class="event-item">
-              <h3><i class="fas fa-glass-cheers" style="color:var(--secondary-color); margin-bottom: 5px;"></i><br>Resepsi</h3>
-              <p class="date"><i class="far fa-calendar-alt"></i> <span id="resepsi-date">Selasa, 01 Desember 2026</span></p>
+              <h3><i class="fas fa-glass-cheers"
+                  style="color:var(--secondary-color); margin-bottom: 5px;"></i><br>Resepsi</h3>
+              <p class="date"><i class="far fa-calendar-alt"></i> <span id="resepsi-date">Selasa, 01 Desember
+                  2026</span></p>
               <p class="time"><i class="far fa-clock"></i> <span id="resepsi-time">11:00 WIB - Selesai</span></p>
             </div>
           </div>
@@ -206,11 +238,13 @@
             <h3 style="border-top: 1px solid rgba(212,175,55,0.3); padding-top: 20px; margin-top: 20px;">
               <i class="fas fa-map-marker-alt" style="color:var(--secondary-color);"></i> Lokasi Acara
             </h3>
-            <p class="venue-name" style="font-size:1.2rem; font-weight: bold; margin-bottom:15px;">Gedung Raga Seridalam</p>
+            <p class="venue-name" style="font-size:1.2rem; font-weight: bold; margin-bottom:15px;">Gedung Raga Seridalam
+            </p>
             <div id="map-container" class="map-container" onclick="openMapModal()">
               <!-- Map Image or Iframe will be inserted here -->
             </div>
-            <a href="#" id="maps-link" target="_blank" class="btn-primary mt-3" style="display:inline-block; width:100%; border-radius: 30px;">
+            <a href="#" id="maps-link" target="_blank" class="btn-primary mt-3"
+              style="display:inline-block; width:100%; border-radius: 30px;">
               <i class="fas fa-location-arrow"></i> Buka Google Maps
             </a>
           </div>
