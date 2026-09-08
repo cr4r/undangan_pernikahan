@@ -33,7 +33,7 @@ function toggleSidebar() {
   document.getElementById('sidebar-overlay').classList.toggle('show');
 }
 
-function compressImage(file, maxWidth, maxHeight, quality, callback, forceJpeg = false) {
+function compressImage(file, maxWidth, maxHeight, quality, callback, forceJpeg = false, scalePercent = null) {
   if (!file.type.match(/image.*/)) {
     const reader = new FileReader();
     reader.onload = e => callback(e.target.result);
@@ -48,10 +48,16 @@ function compressImage(file, maxWidth, maxHeight, quality, callback, forceJpeg =
     img.onload = () => {
       const canvas = document.createElement('canvas');
       let width = img.width; let height = img.height;
-      if (width > height) {
-        if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
+      
+      if (scalePercent !== null && scalePercent > 0) {
+        width = Math.round(width * scalePercent);
+        height = Math.round(height * scalePercent);
       } else {
-        if (height > maxHeight) { width = Math.round((width * maxHeight) / height); height = maxHeight; }
+        if (width > height) {
+          if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
+        } else {
+          if (height > maxHeight) { width = Math.round((width * maxHeight) / height); height = maxHeight; }
+        }
       }
       canvas.width = width; canvas.height = height;
       const ctx = canvas.getContext('2d');
@@ -521,6 +527,7 @@ function populateGallery(data) {
       <td>${preview}</td>
       <td>${escapeHTML(item.name || '')} ${categoryBadge}</td>
       <td>
+        <button class="btn-primary" onclick="openEditGalleryModal('${item.id}', '${encodeURIComponent(item.name || '')}', '${encodeURIComponent(item.category || 'Umum')}', '${item.type}', '${item.url}')" style="background:#f39c12; margin-bottom:5px;"><i class="fas fa-edit"></i> Edit</button>
         <button class="btn-danger" onclick="deleteGalleryItem('${item.id}')"><i class="fas fa-trash"></i> Hapus</button>
       </td>
     </tr>
@@ -567,8 +574,12 @@ function addGallery(e) {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
   btn.disabled = true;
 
-  // Reduce size to 800x800, lower quality to 0.6, and force JPEG conversion
-  compressImage(file, 800, 800, 0.6, function (dataUrl) {
+  const compressEl = document.getElementById('media-compression');
+  const scalePercent = compressEl ? parseInt(compressEl.value) / 100 : 0.6;
+  const quality = Math.min(Math.max(scalePercent, 0.4), 0.85); // JPEG Quality bounded between 0.4 and 0.85
+
+  // Pass scalePercent to compressImage
+  compressImage(file, Infinity, Infinity, quality, function (dataUrl) {
     const item = {
       name: document.getElementById('media-name').value,
       type: 'photo',
@@ -577,8 +588,8 @@ function addGallery(e) {
       base64Data: dataUrl
     };
 
-    apiRequest('addGalleryItem', { item: item, token: token }, (res) => { if (res.success) { showToast('Media berhasil ditambahkan!', 'success'); document.getElementById('add-gallery-form').reset(); loadData(); } btn.innerHTML = '<i class="fas fa-upload"></i> Unggah Media'; btn.disabled = false; }, (err) => { btn.innerHTML = '<i class="fas fa-upload"></i> Unggah Media'; btn.disabled = false; handleError(err); });
-  }, true);
+    apiRequest('addGalleryItem', { item: item, token: token }, (res) => { if (res.success) { showToast('Media berhasil ditambahkan!', 'success'); document.getElementById('add-gallery-form').reset(); document.getElementById('compression-val').innerText = '60'; loadData(); } btn.innerHTML = '<i class="fas fa-upload"></i> Unggah Media'; btn.disabled = false; }, (err) => { btn.innerHTML = '<i class="fas fa-upload"></i> Unggah Media'; btn.disabled = false; handleError(err); });
+  }, true, scalePercent);
 }
 
 function deleteGalleryItem(id) {
@@ -601,6 +612,105 @@ function deleteGalleryItem(id) {
       }, handleError);
     }
   });
+}
+
+function openEditGalleryModal(id, name, category, type, url) {
+  document.getElementById('edit-gallery-id').value = id;
+  document.getElementById('edit-gallery-type').value = type;
+  document.getElementById('edit-gallery-name').value = decodeURIComponent(name);
+  const catVal = decodeURIComponent(category);
+  const catSelect = document.getElementById('edit-gallery-category');
+  if (catVal && catVal !== 'Umum' && catVal !== 'undefined') {
+    catSelect.value = catVal;
+  } else {
+    catSelect.value = 'Umum';
+  }
+  
+  const previewContainer = document.getElementById('edit-gallery-preview');
+  if (type === 'video') {
+    previewContainer.innerHTML = `<video src="${url}" style="max-width: 100%; border-radius: 8px; margin-bottom: 10px;" controls></video>`;
+  } else {
+    previewContainer.innerHTML = `<img src="${url}" style="max-width: 100%; max-height: 200px; border-radius: 8px; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;">`;
+  }
+  
+  const fileInput = document.getElementById('edit-gallery-file');
+  fileInput.value = '';
+  
+  document.getElementById('edit-gallery-modal').style.display = 'flex';
+}
+
+function closeEditGalleryModal() {
+  document.getElementById('edit-gallery-modal').style.display = 'none';
+}
+
+function submitEditGallery(e) {
+  e.preventDefault();
+  const id = document.getElementById('edit-gallery-id').value;
+  const type = document.getElementById('edit-gallery-type').value;
+  const name = document.getElementById('edit-gallery-name').value;
+  const category = document.getElementById('edit-gallery-category').value;
+  const fileInput = document.getElementById('edit-gallery-file');
+  
+  const btn = document.getElementById('btn-save-edit-gallery');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+  btn.disabled = true;
+  
+  const newData = {
+    name: name,
+    category: category,
+    type: type
+  };
+  
+  const doSubmit = (dataObj) => {
+    apiRequest('editGalleryItem', { id: id, newData: dataObj, token: token }, (res) => {
+      btn.innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan';
+      btn.disabled = false;
+      if (res.success) {
+        showToast('Media berhasil diperbarui!', 'success');
+        closeEditGalleryModal();
+        loadData();
+      } else {
+        showToast('Gagal: ' + res.message, 'error');
+      }
+    }, (err) => {
+      btn.innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan';
+      btn.disabled = false;
+      handleError(err);
+    });
+  };
+
+  if (fileInput.files.length > 0) {
+    const file = fileInput.files[0];
+    if (file.type.startsWith('video/')) {
+      if (file.size > 15 * 1024 * 1024) {
+        showToast("Maksimal ukuran video 15MB", "error");
+        btn.innerHTML = '<i class="fas fa-save"></i> Simpan Perubahan';
+        btn.disabled = false;
+        return;
+      }
+      newData.type = 'video';
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        newData.base64Data = event.target.result;
+        newData.mimeType = file.type;
+        doSubmit(newData);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      newData.type = 'photo';
+      const compressEl = document.getElementById('edit-media-compression');
+      const scalePercent = compressEl ? parseInt(compressEl.value) / 100 : 0.6;
+      const quality = Math.min(Math.max(scalePercent, 0.4), 0.85);
+      
+      compressImage(file, Infinity, Infinity, quality, function (dataUrl) {
+        newData.base64Data = dataUrl;
+        newData.mimeType = 'image/jpeg';
+        doSubmit(newData);
+      }, true, scalePercent);
+    }
+  } else {
+    doSubmit(newData);
+  }
 }
 
 function populateRSVP(data) {
@@ -687,7 +797,8 @@ function deleteRsvp(rowNum) {
 }
 
 function handleError(err) {
-  showToast(err.message || 'Terjadi kesalahan. Silakan coba lagi.', 'error');
+  const msg = typeof err === 'string' ? err : (err.message || 'Terjadi kesalahan. Silakan coba lagi.');
+  showToast(msg, 'error');
   if (err.message === 'Unauthorized') { logout(); }
 }
 

@@ -281,7 +281,12 @@
                   <label id="media-file-label">Pilih File Foto</label>
                   <input type="file" id="media-file" accept="image/*" required>
                 </div>
-                <button type="submit" class="btn-primary" id="btn-add-gallery"><i class="fas fa-upload"></i> Unggah
+                <div class="floating-group" id="compression-group" style="margin-top: 15px;">
+                  <label style="font-size: 0.85rem; color: var(--primary-gold); margin-bottom: 5px; display: block;">Resolusi & Kompresi Foto (<span id="compression-val">60</span>% dari ukuran asli)</label>
+                  <input type="range" id="media-compression" min="10" max="100" value="60" step="5" style="width: 100%;" oninput="document.getElementById('compression-val').innerText = this.value">
+                  <small style="font-size: 0.7rem; color: #888; display: block; margin-top: 5px;">Makin kecil persentase, file makin ringan. Berguna agar loading web tidak berat jika foto aslinya sangat besar.</small>
+                </div>
+                <button type="submit" class="btn-primary" id="btn-add-gallery" style="margin-top: 15px;"><i class="fas fa-upload"></i> Unggah
                   Media</button>
               </form>
             </div>
@@ -359,6 +364,47 @@
         </div>
         <button type="submit" class="btn-primary" id="btn-edit-rsvp" style="width:100%;"><i class="fas fa-save"></i>
           Simpan Perubahan</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Edit Gallery -->
+  <div id="edit-gallery-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeEditGalleryModal()">&times;</span>
+      <h3><i class="fas fa-edit"></i> Edit Media Galeri</h3>
+      <div id="edit-gallery-preview" style="text-align: center; margin-bottom: 15px; background: #f9f9f9; padding: 10px; border-radius: 8px;"></div>
+      <form id="edit-gallery-form" onsubmit="submitEditGallery(event)">
+        <input type="hidden" id="edit-gallery-id">
+        <input type="hidden" id="edit-gallery-type">
+        
+        <div class="floating-group">
+          <input type="text" id="edit-gallery-name" class="floating-input" required placeholder=" ">
+          <label class="floating-label">Judul / Nama Media</label>
+        </div>
+        
+        <div class="floating-group">
+          <select id="edit-gallery-category" class="floating-input" style="padding-top:12px;">
+            <option value="Pre-Wedding">Pre-Wedding</option>
+            <option value="Engagement">Engagement</option>
+            <option value="Memories">Memories</option>
+            <option value="Umum">Umum</option>
+          </select>
+          <label class="floating-label" style="top:0; font-size:0.8rem; color:var(--primary-color);">Kategori Foto</label>
+        </div>
+        
+        <div class="floating-group">
+          <label id="edit-media-file-label">Pilih File Baru (Kosongkan jika tidak ingin ganti foto)</label>
+          <input type="file" id="edit-gallery-file" accept="image/*,video/*">
+        </div>
+        
+        <div class="floating-group" id="edit-compression-group" style="margin-top: 15px;">
+          <label style="font-size: 0.85rem; color: var(--primary-gold); margin-bottom: 5px; display: block;">Resolusi & Kompresi Foto Baru (<span id="edit-compression-val">60</span>% dari ukuran asli)</label>
+          <input type="range" id="edit-media-compression" min="10" max="100" value="60" step="5" style="width: 100%;" oninput="document.getElementById('edit-compression-val').innerText = this.value">
+          <small style="font-size: 0.7rem; color: #888; display: block; margin-top: 5px;">Hanya berlaku jika Anda memilih/mengganti file foto baru di atas.</small>
+        </div>
+        
+        <button type="submit" class="btn-primary" id="btn-save-edit-gallery" style="margin-top: 15px;"><i class="fas fa-save"></i> Simpan Perubahan</button>
       </form>
     </div>
   </div>

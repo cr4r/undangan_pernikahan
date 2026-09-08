@@ -56,6 +56,9 @@ function handleApiRequest(data) {
     } else if (action === 'deleteGalleryItem') {
       var res = deleteGalleryItem(data.id, data.token);
       responseData = {result: res};
+    } else if (action === 'editGalleryItem') {
+      var res = editGalleryItem(data.id, data.newData, data.token);
+      responseData = {result: res};
     } else if (action === 'deleteRsvp') {
       var res = deleteRsvp(data.rowNum, data.token);
       responseData = {result: res};
@@ -325,6 +328,37 @@ function deleteGalleryItem(id, token) {
     }
   }
   return { success: false };
+}
+
+function editGalleryItem(id, newData, token) {
+  if (!verifyToken(token)) throw new Error('Unauthorized');
+  var ss = getDb();
+  var sheet = ss.getSheetByName('Gallery');
+  var data = sheet.getDataRange().getValues();
+  
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim() === String(id).trim()) {
+      var row = i + 1;
+      
+      if (newData.base64Data) {
+        try {
+          var ext = newData.mimeType.split('/')[1] || 'jpeg';
+          var filename = newData.name + '.' + ext;
+          var url = uploadFileToDrive(newData.base64Data, filename, newData.mimeType, 'Galeri', 'Undangan Pernikahan');
+          sheet.getRange(row, 3).setValue(url);
+          sheet.getRange(row, 2).setValue(newData.type);
+        } catch(e) {
+          throw new Error('Gagal upload gambar baru: ' + e.message);
+        }
+      }
+      
+      if (newData.name !== undefined) sheet.getRange(row, 4).setValue(newData.name);
+      if (newData.category !== undefined) sheet.getRange(row, 5).setValue(newData.category);
+      
+      return { success: true };
+    }
+  }
+  return { success: false, message: 'Item tidak ditemukan' };
 }
 
 function deleteRsvp(rowNum, token) {
