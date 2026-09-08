@@ -945,3 +945,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+function createFallingFlowers() {
+  if (window.innerWidth > 768) return; // Only for mobile
+  
+  const container = document.createElement('div');
+  container.className = 'flower-container';
+  document.getElementById('main-content').appendChild(container);
+
+  const colors = ['#ffffff', 'var(--secondary-color)', 'rgba(212, 175, 55, 0.4)'];
+  
+  for (let i = 0; i < 25; i++) {
+    const petal = document.createElement('div');
+    petal.className = 'flower-petal';
+    
+    // Randomize position, delay, and duration
+    petal.style.left = Math.random() * 100 + 'vw';
+    petal.style.animationDuration = (Math.random() * 5 + 7) + 's, ' + (Math.random() * 3 + 3) + 's';
+    petal.style.animationDelay = (Math.random() * 5) + 's, 0s';
+    
+    // Randomize color and size
+    petal.style.background = colors[Math.floor(Math.random() * colors.length)];
+    const size = Math.random() * 10 + 8; // 8px to 18px
+    petal.style.width = size + 'px';
+    petal.style.height = size + 'px';
+    
+    container.appendChild(petal);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', createFallingFlowers);

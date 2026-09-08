@@ -1865,4 +1865,44 @@ h3 {
     width: 100%;
     margin-left: 0;
   }
+}/* Falling Flowers Animation */
+.flower-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.flower-petal {
+  position: absolute;
+  top: -10%;
+  width: 15px;
+  height: 15px;
+  background: var(--secondary-color);
+  border-radius: 50% 0 50% 50%;
+  opacity: 0.6;
+  animation: fall linear infinite, swayFlow ease-in-out infinite alternate;
+  box-shadow: inset -2px -2px 4px rgba(0,0,0,0.1);
+}
+
+@keyframes fall {
+  0% {
+    top: -10%;
+  }
+  100% {
+    top: 110%;
+  }
+}
+
+@keyframes swayFlow {
+  0% {
+    transform: translateX(0) rotate(0deg);
+  }
+  100% {
+    transform: translateX(50px) rotate(180deg);
+  }
 }
