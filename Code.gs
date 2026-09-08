@@ -220,6 +220,18 @@ function saveSettings(settings, token) {
     delete settings.GroomPhotoMime;
   }
 
+  if (settings.FaviconBase64) {
+    settings.FaviconUrl = uploadFileToDrive(settings.FaviconBase64, 'favicon_' + Utilities.getUuid().substring(0,8) + '.png', settings.FaviconMime || 'image/png', 'Undangan Pernikahan');
+    delete settings.FaviconBase64;
+    delete settings.FaviconMime;
+  }
+
+  if (settings.OgImageBase64) {
+    settings.OgImageUrl = uploadFileToDrive(settings.OgImageBase64, 'og_image_' + Utilities.getUuid().substring(0,8) + '.png', settings.OgImageMime || 'image/png', 'Undangan Pernikahan');
+    delete settings.OgImageBase64;
+    delete settings.OgImageMime;
+  }
+
   // Handle Bank Icons and QR Codes
   if (settings.BankAccounts) {
     try {

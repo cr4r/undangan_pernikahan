@@ -82,6 +82,35 @@ function initCarousel() {
 function initPage(data) {
   const s = data.settings;
 
+  // Populate SEO
+  if (s.SeoTitle) {
+    document.title = s.SeoTitle;
+    if(document.getElementById('page-title')) document.getElementById('page-title').textContent = s.SeoTitle;
+    if(document.getElementById('meta-og-title')) document.getElementById('meta-og-title').content = s.SeoTitle;
+  }
+  if (s.SeoDesc) {
+    if(document.getElementById('meta-desc')) document.getElementById('meta-desc').content = s.SeoDesc;
+    if(document.getElementById('meta-og-desc')) document.getElementById('meta-og-desc').content = s.SeoDesc;
+  }
+  if (s.SeoKeywords) {
+    if(document.getElementById('meta-keywords')) document.getElementById('meta-keywords').content = s.SeoKeywords;
+  }
+  if (s.SeoAuthor) {
+    if(document.getElementById('meta-author')) document.getElementById('meta-author').content = s.SeoAuthor;
+  }
+  if (s.ThemeColor) {
+    if(document.getElementById('meta-theme')) document.getElementById('meta-theme').content = s.ThemeColor;
+  }
+  if (s.FaviconUrl) {
+    if(document.getElementById('favicon-32')) document.getElementById('favicon-32').href = s.FaviconUrl;
+    if(document.getElementById('favicon-16')) document.getElementById('favicon-16').href = s.FaviconUrl;
+    if(document.getElementById('favicon-shortcut')) document.getElementById('favicon-shortcut').href = s.FaviconUrl;
+    if(document.getElementById('favicon-apple')) document.getElementById('favicon-apple').href = s.FaviconUrl;
+  }
+  if (s.OgImageUrl) {
+    if(document.getElementById('meta-og-image')) document.getElementById('meta-og-image').content = s.OgImageUrl;
+  }
+
   // Populate Names
   document.getElementById('bride-name-hero').textContent = s.BrideName;
   document.getElementById('groom-name-hero').textContent = s.GroomName;

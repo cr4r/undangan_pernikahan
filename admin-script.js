@@ -67,6 +67,35 @@ function compressImage(file, maxWidth, maxHeight, quality, callback, forceJpeg =
   };
 }
 
+function compressSquareImage(file, size, quality, callback) {
+  if (!file.type.match(/image.*/)) {
+    const reader = new FileReader();
+    reader.onload = e => callback(e.target.result);
+    reader.readAsDataURL(file);
+    return;
+  }
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = event => {
+    const img = new Image();
+    img.src = event.target.result;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      
+      let sourceSize = Math.min(img.width, img.height);
+      let sx = (img.width - sourceSize) / 2;
+      let sy = (img.height - sourceSize) / 2;
+      
+      // Fill transparent background if converting to PNG or just keep it
+      ctx.drawImage(img, sx, sy, sourceSize, sourceSize, 0, 0, size, size);
+      callback(canvas.toDataURL(file.type === 'image/png' ? 'image/png' : 'image/jpeg', quality));
+    };
+  };
+}
+
 function showTab(tabId) {
   // Ensure all modals are closed when navigating between tabs
   document.querySelectorAll('.modal').forEach(modal => {
@@ -304,6 +333,31 @@ function populateSettings(data) {
     groomStatus.setAttribute('data-exists', 'false');
   }
 
+  // Populate SEO
+  if (document.getElementById('setting-seo-title')) document.getElementById('setting-seo-title').value = data.SeoTitle || '';
+  if (document.getElementById('setting-seo-author')) document.getElementById('setting-seo-author').value = data.SeoAuthor || '';
+  if (document.getElementById('setting-seo-desc')) document.getElementById('setting-seo-desc').value = data.SeoDesc || '';
+  if (document.getElementById('setting-seo-keywords')) document.getElementById('setting-seo-keywords').value = data.SeoKeywords || '';
+  if (document.getElementById('setting-theme-color')) document.getElementById('setting-theme-color').value = data.ThemeColor || '#d4af37';
+
+  const faviconPreview = document.getElementById('favicon-preview');
+  if (faviconPreview) {
+    if (data.FaviconUrl) {
+      faviconPreview.innerHTML = `<img src="${data.FaviconUrl}" style="max-height: 50px; border-radius: 4px; border: 1px solid #ccc; background: white;"><br><i class="fas fa-check-circle" style="color:green; font-size:0.8rem;"></i> Favicon Aktif`;
+    } else {
+      faviconPreview.innerHTML = '<span style="font-size:0.8rem; color:#777;">Belum ada Favicon</span>';
+    }
+  }
+
+  const ogPreview = document.getElementById('og-image-preview');
+  if (ogPreview) {
+    if (data.OgImageUrl) {
+      ogPreview.innerHTML = `<img src="${data.OgImageUrl}" style="max-height: 100px; border-radius: 8px; border: 1px solid #ccc;"><br><i class="fas fa-check-circle" style="color:green; font-size:0.8rem;"></i> OG Image Aktif`;
+    } else {
+      ogPreview.innerHTML = '<span style="font-size:0.8rem; color:#777;">Belum ada OG Image</span>';
+    }
+  }
+
   if (data.BankAccounts) {
     try { bankAccountsList = JSON.parse(data.BankAccounts); } catch (e) { bankAccountsList = []; }
   } else {
@@ -336,7 +390,12 @@ function saveSettings(e) {
     ResepsiDate: document.getElementById('ResepsiDate').value,
     MusicUrl: document.getElementById('MusicUrl') ? document.getElementById('MusicUrl').value : '',
     MapsLink: document.getElementById('MapsLink').value,
-    BankAccounts: JSON.stringify(bankAccountsList)
+    BankAccounts: JSON.stringify(bankAccountsList),
+    SeoTitle: document.getElementById('setting-seo-title') ? document.getElementById('setting-seo-title').value : '',
+    SeoAuthor: document.getElementById('setting-seo-author') ? document.getElementById('setting-seo-author').value : '',
+    SeoDesc: document.getElementById('setting-seo-desc') ? document.getElementById('setting-seo-desc').value : '',
+    SeoKeywords: document.getElementById('setting-seo-keywords') ? document.getElementById('setting-seo-keywords').value : '',
+    ThemeColor: document.getElementById('setting-theme-color') ? document.getElementById('setting-theme-color').value : '#d4af37'
   };
 
   const mapFileInput = document.getElementById('MapImageFile');
@@ -406,11 +465,42 @@ function saveSettings(e) {
     }
   }
 
+  const faviconFileInput = document.getElementById('setting-favicon-file');
+  const ogImageFileInput = document.getElementById('setting-og-image-file');
+
+  function readFaviconFile(callback) {
+    if (faviconFileInput && faviconFileInput.files.length > 0) {
+      compressSquareImage(faviconFileInput.files[0], 512, 0.9, function(dataUrl) {
+        data.FaviconBase64 = dataUrl;
+        data.FaviconMime = faviconFileInput.files[0].type === 'image/png' ? 'image/png' : 'image/jpeg';
+        callback();
+      });
+    } else {
+      callback();
+    }
+  }
+
+  function readOgImageFile(callback) {
+    if (ogImageFileInput && ogImageFileInput.files.length > 0) {
+      compressImage(ogImageFileInput.files[0], 1200, 630, 0.8, function(dataUrl) {
+        data.OgImageBase64 = dataUrl;
+        data.OgImageMime = ogImageFileInput.files[0].type;
+        callback();
+      });
+    } else {
+      callback();
+    }
+  }
+
   // Chain the callbacks
   readBrideFile(() => {
     readGroomFile(() => {
       readMapFile(() => {
-        readMusicFile(proceedToSend);
+        readMusicFile(() => {
+          readFaviconFile(() => {
+            readOgImageFile(proceedToSend);
+          });
+        });
       });
     });
   });

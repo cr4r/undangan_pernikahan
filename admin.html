@@ -195,6 +195,52 @@
                 </div>
               </div>
 
+              <!-- SEO & Favicon Card -->
+              <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header"><i class="fas fa-search"></i> Pengaturan SEO & Favicon</div>
+                
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                  <div class="floating-group">
+                    <input type="text" id="setting-seo-title" class="floating-input" placeholder=" ">
+                    <label class="floating-label">Judul Web (Title)</label>
+                  </div>
+                  <div class="floating-group">
+                    <input type="text" id="setting-seo-author" class="floating-input" placeholder=" ">
+                    <label class="floating-label">Nama Author</label>
+                  </div>
+                </div>
+
+                <div class="floating-group">
+                  <textarea id="setting-seo-desc" class="floating-input" placeholder=" " style="min-height: 80px; resize: vertical;"></textarea>
+                  <label class="floating-label">Deskripsi SEO</label>
+                </div>
+
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                  <div class="floating-group">
+                    <input type="text" id="setting-seo-keywords" class="floating-input" placeholder=" ">
+                    <label class="floating-label">Kata Kunci (pisahkan dengan koma)</label>
+                  </div>
+                  <div class="floating-group">
+                    <input type="color" id="setting-theme-color" class="floating-input" value="#d4af37" style="padding: 10px; height: 50px;">
+                    <label class="floating-label" style="top: -10px; font-size: 0.85rem; background: var(--bg-color);">Warna Tema Mobile (Theme Color)</label>
+                  </div>
+                </div>
+
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                  <div class="file-upload-wrapper">
+                    <label>Upload Favicon (Akan di-resize square 512x512)</label>
+                    <input type="file" id="setting-favicon-file" accept="image/*">
+                    <div id="favicon-preview" style="margin-top:10px;"></div>
+                  </div>
+                  
+                  <div class="file-upload-wrapper">
+                    <label>Upload Gambar Cover (OG Image)</label>
+                    <input type="file" id="setting-og-image-file" accept="image/*">
+                    <div id="og-image-preview" style="margin-top:10px;"></div>
+                  </div>
+                </div>
+              </div>
+
             </div> <!-- End Dashboard Grid -->
 
             <div style="margin-top: 20px;">
