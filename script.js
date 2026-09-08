@@ -586,10 +586,18 @@ function startAutoScroll() {
         isAutoScrolling = true;
         if (btn) btn.innerHTML = '<i class="fas fa-chevron-down scroll-anim"></i>';
 
-        // Jeda 0.5 detik untuk pindah tab (sesuai request)
+        const activeLink = document.querySelector('.bottom-nav a.active');
+        let delay = 500;
+        if (activeLink) {
+          const currentHref = activeLink.getAttribute('href').substring(1);
+          if (currentHref === 'gallery' || currentHref === 'gift') {
+            delay = 3000;
+          }
+        }
+
+        // Jeda dinamis untuk pindah tab (sesuai request)
         autoScrollTimeout = setTimeout(() => {
           const tabs = ['greeting', 'events', 'gallery', 'gift', 'rsvp'];
-          const activeLink = document.querySelector('.bottom-nav a.active');
 
           if (activeLink) {
             const currentHref = activeLink.getAttribute('href').substring(1);
@@ -615,7 +623,7 @@ function startAutoScroll() {
               stopAutoScroll();
             }
           }
-        }, 500);
+        }, delay);
       }
     } else {
       autoScrollInterval = requestAnimationFrame(step);
