@@ -85,30 +85,30 @@ function initPage(data) {
   // Populate SEO
   if (s.SeoTitle) {
     document.title = s.SeoTitle;
-    if(document.getElementById('page-title')) document.getElementById('page-title').textContent = s.SeoTitle;
-    if(document.getElementById('meta-og-title')) document.getElementById('meta-og-title').content = s.SeoTitle;
+    if (document.getElementById('page-title')) document.getElementById('page-title').textContent = s.SeoTitle;
+    if (document.getElementById('meta-og-title')) document.getElementById('meta-og-title').content = s.SeoTitle;
   }
   if (s.SeoDesc) {
-    if(document.getElementById('meta-desc')) document.getElementById('meta-desc').content = s.SeoDesc;
-    if(document.getElementById('meta-og-desc')) document.getElementById('meta-og-desc').content = s.SeoDesc;
+    if (document.getElementById('meta-desc')) document.getElementById('meta-desc').content = s.SeoDesc;
+    if (document.getElementById('meta-og-desc')) document.getElementById('meta-og-desc').content = s.SeoDesc;
   }
   if (s.SeoKeywords) {
-    if(document.getElementById('meta-keywords')) document.getElementById('meta-keywords').content = s.SeoKeywords;
+    if (document.getElementById('meta-keywords')) document.getElementById('meta-keywords').content = s.SeoKeywords;
   }
   if (s.SeoAuthor) {
-    if(document.getElementById('meta-author')) document.getElementById('meta-author').content = s.SeoAuthor;
+    if (document.getElementById('meta-author')) document.getElementById('meta-author').content = s.SeoAuthor;
   }
   if (s.ThemeColor) {
-    if(document.getElementById('meta-theme')) document.getElementById('meta-theme').content = s.ThemeColor;
+    if (document.getElementById('meta-theme')) document.getElementById('meta-theme').content = s.ThemeColor;
   }
   if (s.FaviconUrl) {
-    if(document.getElementById('favicon-32')) document.getElementById('favicon-32').href = s.FaviconUrl;
-    if(document.getElementById('favicon-16')) document.getElementById('favicon-16').href = s.FaviconUrl;
-    if(document.getElementById('favicon-shortcut')) document.getElementById('favicon-shortcut').href = s.FaviconUrl;
-    if(document.getElementById('favicon-apple')) document.getElementById('favicon-apple').href = s.FaviconUrl;
+    if (document.getElementById('favicon-32')) document.getElementById('favicon-32').href = s.FaviconUrl;
+    if (document.getElementById('favicon-16')) document.getElementById('favicon-16').href = s.FaviconUrl;
+    if (document.getElementById('favicon-shortcut')) document.getElementById('favicon-shortcut').href = s.FaviconUrl;
+    if (document.getElementById('favicon-apple')) document.getElementById('favicon-apple').href = s.FaviconUrl;
   }
   if (s.OgImageUrl) {
-    if(document.getElementById('meta-og-image')) document.getElementById('meta-og-image').content = s.OgImageUrl;
+    if (document.getElementById('meta-og-image')) document.getElementById('meta-og-image').content = s.OgImageUrl;
   }
 
   // Populate Names
@@ -118,7 +118,7 @@ function initPage(data) {
   document.getElementById('groom-name').textContent = s.GroomName;
   document.getElementById('bride-desc').textContent = s.BrideDesc || 'Putri dari ...';
   document.getElementById('groom-desc').textContent = s.GroomDesc || 'Putra dari ...';
-  
+
   // Populate Photos
   if (s.BridePhoto) document.getElementById('bride-photo').src = s.BridePhoto;
   if (s.GroomPhoto) document.getElementById('groom-photo').src = s.GroomPhoto;
@@ -128,20 +128,20 @@ function initPage(data) {
   const resepsi = new Date(s.ResepsiDate);
 
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  
+
   // Format dates for Google Calendar (YYYYMMDDTHHmm00Z)
   // We use local time by just removing punctuation to assume local timezone for user
   const formatForCalendar = (dateObj) => {
-    return dateObj.toISOString().replace(/-|:|\.\d\d\d/g,"");
+    return dateObj.toISOString().replace(/-|:|\.\d\d\d/g, "");
   };
   const startDateStr = formatForCalendar(resepsi);
   // Assume reception lasts for 3 hours
   const endDateStr = formatForCalendar(new Date(resepsi.getTime() + 3 * 60 * 60 * 1000));
-  
+
   const calLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Pernikahan+${encodeURIComponent(s.GroomName)}+%26+${encodeURIComponent(s.BrideName)}&dates=${startDateStr}/${endDateStr}&details=Acara+Resepsi+Pernikahan&location=${encodeURIComponent(s.LocationAddress || '')}`;
-  
+
   const heroCalBtn = document.getElementById('hero-calendar-btn');
-  if(heroCalBtn) heroCalBtn.href = calLink;
+  if (heroCalBtn) heroCalBtn.href = calLink;
 
   document.getElementById('hero-date').textContent = resepsi.toLocaleDateString('id-ID', options);
   document.getElementById('akad-date').textContent = akad.toLocaleDateString('id-ID', options);
@@ -324,14 +324,14 @@ function initPage(data) {
   const galleryContainer = document.getElementById('gallery-container');
   galleryContainer.innerHTML = '';
   window.galleryItems = [];
-  
+
   if (data.gallery && data.gallery.length > 0) {
     const totalItems = data.gallery.length;
     // Split into 3 arrays roughly equal
     const row1 = [];
     const row2 = [];
     const row3 = [];
-    
+
     data.gallery.forEach((item, index) => {
       if (index % 3 === 0) row1.push(item);
       else if (index % 3 === 1) row2.push(item);
@@ -346,22 +346,22 @@ function initPage(data) {
 
     rows.forEach((row, rowIndex) => {
       if (row.items.length === 0) return;
-      
+
       let trackHtml = `<div class="marquee-row"><div class="marquee-track ${row.direction}">`;
-      
+
       // We duplicate the items 3 times to ensure a smooth infinite loop
-      for(let copy = 0; copy < 3; copy++) {
+      for (let copy = 0; copy < 3; copy++) {
         row.items.forEach((item) => {
           let isVideo = item.type === 'video';
           let itemUrl = item.url;
           let thumbUrl = itemUrl;
           let fileId = '';
-          
+
           if (isVideo) {
             const fileIdMatch = itemUrl.match(/[?&]id=([^&]+)/);
             fileId = fileIdMatch ? fileIdMatch[1] : '';
             thumbUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1000';
-            
+
             // Only add to global gallery array on the first copy to avoid modal duplicates
             if (copy === 0) {
               window.galleryItems.push({ url: fileId, type: 'video' });
@@ -371,7 +371,7 @@ function initPage(data) {
               window.galleryItems.push({ url: item.url, type: 'photo' });
             }
           }
-          
+
           // Calculate the exact index in window.galleryItems for the modal
           let globalIndex = -1;
           if (copy === 0) {
@@ -401,7 +401,7 @@ function initPage(data) {
           }
         });
       }
-      
+
       trackHtml += `</div></div>`;
       galleryContainer.innerHTML += trackHtml;
     });
@@ -415,7 +415,7 @@ function initPage(data) {
       'https://images.unsplash.com/photo-1469334031218-e382a71b716b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
     ];
-    
+
     const rows = [
       { items: [dummyImages[0], dummyImages[1]], direction: 'left' },
       { items: [dummyImages[2], dummyImages[3]], direction: 'right' },
@@ -424,9 +424,9 @@ function initPage(data) {
 
     rows.forEach((row, rIdx) => {
       let trackHtml = `<div class="marquee-row"><div class="marquee-track ${row.direction}">`;
-      for(let copy = 0; copy < 3; copy++) {
+      for (let copy = 0; copy < 3; copy++) {
         row.items.forEach(img => {
-          if(copy === 0) window.galleryItems.push({ url: img, type: 'photo' });
+          if (copy === 0) window.galleryItems.push({ url: img, type: 'photo' });
           let globalIndex = window.galleryItems.findIndex(g => g.url === img);
           trackHtml += `
             <div class="marquee-item" onclick="openModal(${globalIndex})">
@@ -487,13 +487,13 @@ function openInvitation() {
   document.getElementById('home').classList.add('opened');
   const btnBuka = document.getElementById('btn-open-invitation');
   if (btnBuka) btnBuka.style.display = 'none';
-  
+
   const mainContent = document.getElementById('main-content');
   mainContent.style.display = 'block';
   // Trigger reflow to ensure CSS transitions execute
   void mainContent.offsetWidth;
   mainContent.classList.add('fade-in');
-  
+
   const bottomNav = document.getElementById('bottom-nav');
   if (bottomNav) bottomNav.style.display = 'block';
   window.scrollTo(0, 0);
@@ -591,7 +591,7 @@ function startAutoScroll() {
         if (activeLink) {
           const currentHref = activeLink.getAttribute('href').substring(1);
           if (currentHref === 'gallery' || currentHref === 'gift') {
-            delay = 3000;
+            delay = 6000;
           }
         }
 
@@ -956,28 +956,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function createFallingFlowers() {
   if (window.innerWidth > 768) return; // Only for mobile
-  
+
   const container = document.createElement('div');
   container.className = 'flower-container';
   document.getElementById('main-content').appendChild(container);
 
   const colors = ['#ffffff', 'var(--secondary-color)', 'rgba(212, 175, 55, 0.4)'];
-  
+
   for (let i = 0; i < 25; i++) {
     const petal = document.createElement('div');
     petal.className = 'flower-petal';
-    
+
     // Randomize position, delay, and duration
     petal.style.left = Math.random() * 100 + 'vw';
     petal.style.animationDuration = (Math.random() * 5 + 7) + 's, ' + (Math.random() * 3 + 3) + 's';
     petal.style.animationDelay = (Math.random() * 5) + 's, 0s';
-    
+
     // Randomize color and size
     petal.style.background = colors[Math.floor(Math.random() * colors.length)];
     const size = Math.random() * 10 + 8; // 8px to 18px
     petal.style.width = size + 'px';
     petal.style.height = size + 'px';
-    
+
     container.appendChild(petal);
   }
 }
